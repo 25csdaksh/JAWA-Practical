@@ -1,6 +1,6 @@
-# OOP Lab Practical - Hour 1 & Hour 2
+# OOP Lab Practical Portfolio — Semester Work
 
-This repository contains the Java solutions for **Part A (Practice Programs)** and **Part B (Project Work: MiniBank)**.
+This repository contains the complete Java solutions for **Practical 1** and **Practical 2**, organized into practice programs and the semester-long **MiniBank** project.
 
 ---
 
@@ -8,76 +8,110 @@ This repository contains the Java solutions for **Part A (Practice Programs)** a
 
 ```text
 A.lab practical/
-├── lab-01/
-│   ├── VendingMachine.java  (Part A, Program 1)
-│   ├── TollBooth.java       (Part A, Program 2)
-│   └── RPSLS.java           (Part A, Program 3 - Rock-Paper-Scissors-Lizard-Spock)
-├── MiniBank.java            (Part B, MiniBank Semester Project Shell)
-└── README.md                (Lab Documentation & Analysis)
+├── lab-01/                  (Practical 1 — Practice Programs)
+│   ├── VendingMachine.java
+│   ├── TollBooth.java
+│   └── RPSLS.java           (Rock-Paper-Scissors-Lizard-Spock)
+├── lab-02/                  (Practical 2 — Practice Programs)
+│   ├── Thermostat.java
+│   ├── CinemaShow.java
+│   └── ParkingLot.java
+├── Customer.java            (Practical 2 — MiniBank Customer Entity)
+├── Account.java             (Practical 2 — MiniBank Account Entity)
+├── MiniBank.java            (Interactive Banking Console Shell Application)
+├── .gitignore               (Configured to ignore compiled .class files)
+└── README.md                (Portfolio Documentation & Answers to Lab Questions)
 ```
 
 ---
 
-## 🚀 How to Compile and Run
+## 🚀 Compilation and Execution
 
-Make sure you have JDK 17 or higher installed on your system.
+Make sure you have JDK 17 or higher installed on your system. Run all commands from the repository root directory.
 
-### Compiling all files:
-Run the following command from the root directory:
-```bash
-javac lab-01/*.java MiniBank.java
+### 1. Compiling All Programs
+To compile all practice programs and the main project, run:
+```powershell
+javac lab-01/*.java lab-02/*.java Customer.java Account.java MiniBank.java
 ```
 
-### Running the programs:
+### 2. Running Practical 1 Programs
+* **Vending Machine:**
+  ```powershell
+  java -cp lab-01 VendingMachine
+  ```
+* **Toll Booth:**
+  ```powershell
+  java -cp lab-01 TollBooth
+  ```
+* **Rock-Paper-Scissors-Lizard-Spock:**
+  ```powershell
+  java -cp lab-01 RPSLS
+  ```
 
-1. **Vending Machine:**
-   ```bash
-   java lab_01.VendingMachine
-   ```
+### 3. Running Practical 2 Programs
+* **Smart Thermostat:**
+  ```powershell
+  java -cp lab-02 Thermostat
+  ```
+* **Cinema Show Booking:**
+  ```powershell
+  java -cp lab-02 CinemaShow
+  ```
+* **Parking Lot Simulator:**
+  ```powershell
+  java -cp lab-02 ParkingLot
+  ```
 
-2. **Toll Booth:**
-   ```bash
-   java lab_01.TollBooth
-   ```
-
-3. **Rock-Paper-Scissors-Lizard-Spock (RPSLS):**
-   ```bash
-   java lab_01.RPSLS
-   ```
-
-4. **MiniBank CLI Shell:**
-   ```bash
-   java MiniBank
-   ```
+### 4. Running the MiniBank Project
+To start the fully interactive banking application:
+```powershell
+java MiniBank
+```
 
 ---
 
 ## 📝 Key Questions, Analysis & Answers
 
-### 1. What is the role of the JVM, and what file does the javac compiler produce?
-* **Role of the JVM (Java Virtual Machine):** 
-  The JVM is the engine that drives the Java code. It converts Java bytecode into machine language (native instructions) that the host system's hardware can understand. It provides an execution environment (platform independence) and handles memory management (such as automatic Garbage Collection).
-* **File produced by `javac`:**
-  The `javac` compiler translates human-readable Java source files (`.java`) into intermediate bytecode files (`.class`). These `.class` files are what the JVM loads and executes.
+### 💡 Practical 1 Questions
 
-### 2. How does a switch expression differ from a traditional switch statement?
-* **Value Return:** A **switch expression** resolves to a single value and can be assigned directly to a variable or returned from a method, whereas a traditional **switch statement** only executes a block of statements without returning a value.
-* **Fall-through Behavior:** Switch expressions using the arrow syntax (`case X -> ...`) do not have automatic fall-through (meaning no `break` statements are needed to prevent executing the next case). Traditional switch statements require explicit `break` statements, otherwise execution continues into subsequent cases.
-* **Exhaustiveness:** Switch expressions are strictly checked by the compiler for exhaustiveness. If you are switching on an enum, you must cover all constants, or provide a `default` case. Traditional switch statements do not enforce completeness at compile time.
+#### 1. What is the role of the JVM, and what file does the javac compiler produce?
+* **JVM (Java Virtual Machine):** The JVM is the engine that drives Java code. It converts intermediate Java bytecode (which is platform-independent) into native machine language instructions for the host hardware. It also handles automatic memory management (garbage collection) and execution security.
+* **`javac` Output File:** The `javac` compiler compiles human-readable source code (`.java` files) into Java bytecode, producing `.class` files.
 
-### 3. Why is an enum a good choice for a fixed set of menu options, and a record for read-only data?
-* **Enum for Menu Options:**
-  An `enum` defines a fixed set of named constants. Using it for menus provides **type-safety**, prevents invalid inputs at the logical layer, eliminates magic numbers (like using 1, 2, 3), and makes the code highly readable and self-documenting.
-* **Record for Read-only Data:**
-  A `record` (introduced in Java 14/16) is a special class declaration designed to hold immutable (read-only) data. It automatically generates:
-  - Private final fields.
-  - A canonical constructor.
-  - Getter methods (without the `get` prefix, e.g., `header.name()` instead of `header.getName()`).
-  - Standard implementations of `equals()`, `hashCode()`, and `toString()`.
-  This eliminates boilerplate code, keeping data-carrier classes concise and clean.
+#### 2. How does a switch expression differ from a traditional switch statement?
+* **Value Return:** A **switch expression** resolves to a single value that can be assigned directly to a variable or returned. A **switch statement** only executes a block of code and does not return anything.
+* **Fall-through Behavior:** Switch expressions using the arrow syntax (`case X -> ...`) do not have automatic fall-through, making `break` statements obsolete. Traditional switch statements require explicit `break` statements to prevent falling through to subsequent cases.
+* **Exhaustiveness:** Switch expressions are strictly checked for completeness at compile time. You must cover all enum constants or provide a `default` case. Switch statements do not enforce this compile-time validation.
+
+#### 3. Why is an enum a good choice for a fixed set of menu options, and a record for read-only data?
+* **Enum for Menus:** Enums provide type-safety, eliminate magic numbers (like using 1, 2, 3), enforce that only predefined valid menu choices can be parsed, and make code highly self-documenting.
+* **Record for Read-only Data:** Records (introduced in Java 14/16) are specialized classes designed to carry immutable data. Java automatically generates private final fields, getter methods (named after the fields directly, like `bank.branch()`), constructors, and standard implementations of `toString()`, `hashCode()`, and `equals()`, reducing boilerplate.
+
+---
+
+### 💡 Practical 2 Questions
+
+#### 1. What is encapsulation, and how do private fields with public getters enforce it?
+* **Encapsulation** is the bundling of data (fields) and methods that operate on that data into a single unit (class), while hiding internal details and restricting direct access from outside.
+* **How private fields and public getters enforce it:** By declaring fields as `private`, we prevent external code from modifying or viewing fields arbitrarily. Providing only public `getters` permits read-only access. Excluding `setters` for critical fields (like account balance) ensures that the balance can only be updated through controlled, validated methods (`deposit()` and `withdraw()`), preserving class integrity.
+
+#### 2. Why is accountNumber declared final?
+* The account number is a unique, constant identifier. Once an account is created, its account number must never change throughout its lifecycle. Declaring it `final` guarantees that it can only be initialized once in the constructor and prevents accidental reassignment.
+
+#### 3. What is the difference between a static field and an instance field when generating IDs?
+* **Static Field (e.g., `customerCounter` / `accountCounter`):** Belongs to the class itself rather than individual instances. There is only a single copy shared across all objects of that class. It maintains state globally, allowing us to increment the counter every time a new object is created.
+* **Instance Field (e.g., `customerId` / `accountNumber`):** Belongs to a specific object. Each object gets its own copy. It stores the unique ID generated by the static counter, ensuring that each instance keeps its own permanent identity.
 
 ---
 
 ## 🛠️ Implemented Features & Supplementary Solutions
-* **Invalid Input Handling:** In `MiniBank.java`, entering a non-numeric value or a choice outside the range of 1–6 will not crash the application. The program catches invalid inputs and re-prompts the user until a correct choice is entered.
-* **Bank Working Hours:** A dedicated menu option (`5. Check Bank Working Hours`) was integrated into the `MenuOption` enum and switch expression to display the bank's timing info.
+
+### Practical 1
+* **Input Validation:** MiniBank catches non-numeric inputs and range errors, re-prompting the user gracefully.
+* **Timing Menu Option:** Added timing option to `MenuOption` enum and printed timing details.
+
+### Practical 2
+* **Positive Input Enforcements:** Both `deposit()` and `withdraw()` reject negative or zero values.
+* **Local Transfer Helper:** Implemented `Account.transfer(Account source, Account destination, long amount)` which safely withdraws from one account and deposits into another, returning transaction status.
+* **Full MiniBank Integration:** Pre-loads 3 testing accounts at startup to run the requested transactions, and then launches the main menu where you can open accounts, transfer money, deposit, withdraw, and check timings in real-time.
