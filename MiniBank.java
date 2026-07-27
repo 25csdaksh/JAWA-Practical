@@ -20,7 +20,6 @@ public class MiniBank {
         EXIT
     }
 
-    // Helper method to find an account in the array by account number
     private static Account findAccount(Account[] accounts, int count, String accNo) {
         for (int i = 0; i < count; i++) {
             if (accounts[i].getAccountNumber().equalsIgnoreCase(accNo.trim())) {
@@ -34,57 +33,60 @@ public class MiniBank {
         BankInfo header = new BankInfo("MiniBank India", "Gujarat University Campus");
         System.out.println(header);
 
-        // Array to hold bank accounts
         Account[] accounts = new Account[100];
         int accountCount = 0;
 
-        // 5. In main, create three Account objects inside an Account[] array, 
-        // perform a few deposits and withdrawals, and print each balance.
-        System.out.println("\n--- [STARTUP TEST RUN] PRE-LOADING & TESTING 3 ACCOUNTS ---");
-        
-        // Creating accounts (Daksh Soni: Rs 1000, Prof. Sharma: Rs 500, Alice Smith: Rs 0 default)
+        // Pre-load accounts for demonstration
         accounts[accountCount++] = new Account("Daksh Soni", 1000);
         accounts[accountCount++] = new Account("Prof. Sharma", 500);
-        accounts[accountCount++] = new Account("Alice Smith"); 
+        accounts[accountCount++] = new Account("Alice Smith");
 
-        System.out.println("Initial Account List:");
+        System.out.println("\n--- [PRACTICAL 3 DEMONSTRATION & TEST RUN] ---");
+
+        // 1. In main, print accounts using toString()
+        System.out.println("Printing accounts using toString():");
         for (int i = 0; i < accountCount; i++) {
-            System.out.println(" - " + accounts[i]);
+            System.out.println(" - " + accounts[i].toString());
         }
 
-        System.out.println("\nExecuting transactions:");
-        
-        // Deposits
-        System.out.println(" * Depositing Rs. 500 to Account 1 (" + accounts[0].getOwnerName() + ")");
-        accounts[0].deposit(500);
+        // 2. Compare two Account objects with equals()
+        System.out.println("\nComparing Account 1 (AC0001) and Account 2 (AC0002) using equals():");
+        boolean isEqual = accounts[0].equals(accounts[1]);
+        System.out.println("AC0001 equals AC0002? " + isEqual);
+        System.out.println("Comparing AC0001 with itself using equals():");
+        System.out.println("AC0001 equals AC0001? " + accounts[0].equals(accounts[0]));
 
-        // Withdrawals (Sufficient balance)
-        System.out.println(" * Withdrawing Rs. 200 from Account 2 (" + accounts[1].getOwnerName() + ")");
-        accounts[1].withdraw(200);
-
-        // Withdrawals (Insufficient balance - should fail)
-        System.out.println(" * Attempting to withdraw Rs. 100 from Account 3 (" + accounts[2].getOwnerName() + ")");
-        accounts[2].withdraw(100);
-
-        // Negative value checks (Supplementary)
-        System.out.println(" * Attempting negative deposit to Account 1:");
-        accounts[0].deposit(-100);
-
-        // Account transfer helper check (Supplementary)
-        System.out.println(" * Transferring Rs. 300 from Account 1 to Account 3:");
-        Account.transfer(accounts[0], accounts[2], 300);
-
-        System.out.println("\nBalances after transactions:");
-        for (int i = 0; i < accountCount; i++) {
-            System.out.println(" - Account " + accounts[i].getAccountNumber() 
-                               + " (" + accounts[i].getOwnerName() + ") Balance: Rs. " + accounts[i].getBalance());
+        // 3. Use instanceof to check an object’s type
+        System.out.println("\nChecking object type using instanceof:");
+        Object testObj = accounts[0];
+        if (testObj instanceof Account) {
+            System.out.println("testObj is indeed an instance of Account class.");
         }
+        if (testObj instanceof Object) {
+            System.out.println("testObj is also an instance of Object class.");
+        }
+
+        // 4. Test Customer Address nested class and clone()
+        System.out.println("\nTesting Customer Address and deep cloning:");
+        Customer.Address addr = new Customer.Address("101 University Road", "Ahmedabad", "380009");
+        Customer originalCustomer = new Customer("Daksh Soni", "daksh@charusat.edu.in", "9876543210", addr);
+        Customer clonedCustomer = originalCustomer.clone();
+
+        System.out.println("Original Customer: " + originalCustomer);
+        System.out.println("Cloned Customer:   " + clonedCustomer);
+        System.out.println("Are references equal? (original == cloned) -> " + (originalCustomer == clonedCustomer));
+        System.out.println("Are addresses shared reference? (original.addr == cloned.addr) -> " 
+                           + (originalCustomer.getAddress() == clonedCustomer.getAddress()));
+
+        // Supplementary: Format and print Statement
+        System.out.println("\nPrinting multi-line Account Statement:");
+        System.out.println(accounts[0].getStatement());
+
         System.out.println("-----------------------------------------------------------\n");
 
         Scanner scanner = new Scanner(System.in);
         boolean keepRunning = true;
 
-        // Start the interactive console shell
         while (keepRunning) {
             System.out.println("\n----------------- INTERACTIVE MENU -----------------");
             System.out.println("1. Open Account");
@@ -99,9 +101,9 @@ public class MiniBank {
             int choice = -1;
             if (scanner.hasNextInt()) {
                 choice = scanner.nextInt();
-                scanner.nextLine(); // Consume trailing newline
+                scanner.nextLine(); // Consume newline
             } else {
-                scanner.nextLine(); // Clear invalid input from buffer
+                scanner.nextLine(); // Clear buffer
             }
 
             MenuOption selectedOption = switch (choice) {
@@ -132,7 +134,7 @@ public class MiniBank {
                         System.out.println("\n[SUCCESS] Account created: " + accounts[accountCount]);
                         accountCount++;
                     } else {
-                        System.out.println("\n[ERROR] Bank database full. Cannot open more accounts.");
+                        System.out.println("\n[ERROR] Bank database full.");
                     }
                 }
                 case DEPOSIT -> {
@@ -142,9 +144,9 @@ public class MiniBank {
                     if (acc != null) {
                         System.out.print("Enter amount to deposit: ");
                         long amount = scanner.nextLong();
-                        scanner.nextLine(); // Consume newline
+                        scanner.nextLine();
                         acc.deposit(amount);
-                        System.out.println("[SUCCESS] Updated balance: Rs. " + acc.getBalance());
+                        System.out.println("[SUCCESS] Updated details: " + acc);
                     } else {
                         System.out.println("\n[ERROR] Account not found!");
                     }
@@ -156,9 +158,9 @@ public class MiniBank {
                     if (acc != null) {
                         System.out.print("Enter amount to withdraw: ");
                         long amount = scanner.nextLong();
-                        scanner.nextLine(); // Consume newline
+                        scanner.nextLine();
                         if (acc.withdraw(amount)) {
-                            System.out.println("[SUCCESS] Withdrawal completed. Remaining balance: Rs. " + acc.getBalance());
+                            System.out.println("[SUCCESS] Updated details: " + acc);
                         }
                     } else {
                         System.out.println("\n[ERROR] Account not found!");
@@ -176,7 +178,7 @@ public class MiniBank {
                     if (src != null && dest != null) {
                         System.out.print("Enter amount to transfer: ");
                         long amount = scanner.nextLong();
-                        scanner.nextLine(); // Consume newline
+                        scanner.nextLine();
                         Account.transfer(src, dest, amount);
                     } else {
                         System.out.println("\n[ERROR] One or both account numbers are invalid.");

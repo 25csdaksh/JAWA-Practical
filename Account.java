@@ -1,3 +1,5 @@
+import java.util.Objects;
+
 public class Account {
     private final String accountNumber;
     private String ownerName;
@@ -6,29 +8,23 @@ public class Account {
 
     private static long accountCounter = 0;
 
-    // Private static method to generate account number, e.g., "AC0001"
     private static String generateAccountNumber() {
         accountCounter++;
         return String.format("AC%04d", accountCounter);
     }
 
-    // Constructor taking ownerName and opening balance
     public Account(String ownerName, long balance) {
         this.accountNumber = generateAccountNumber();
         this.ownerName = ownerName;
-        // Set opening balance; reject negative starting balance (set to 0)
         this.balance = Math.max(0, balance);
         this.active = true;
     }
 
-    // Constructor taking only ownerName, chaining to the first constructor
     public Account(String ownerName) {
         this(ownerName, 0);
     }
 
-    // Public method deposit
     public void deposit(long amount) {
-        // Supplementary: Reject a deposit of a negative/zero amount
         if (amount <= 0) {
             System.out.println("[ERROR] Deposit amount must be positive. Provided: " + amount);
             return;
@@ -36,9 +32,7 @@ public class Account {
         this.balance += amount;
     }
 
-    // Public method withdraw
     public boolean withdraw(long amount) {
-        // Supplementary: Reject a withdrawal of a negative/zero amount
         if (amount <= 0) {
             System.out.println("[ERROR] Withdrawal amount must be positive. Provided: " + amount);
             return false;
@@ -53,23 +47,11 @@ public class Account {
     }
 
     // Getters
-    public String getAccountNumber() {
-        return accountNumber;
-    }
+    public String getAccountNumber() { return accountNumber; }
+    public String getOwnerName() { return ownerName; }
+    public long getBalance() { return balance; }
+    public boolean isActive() { return active; }
 
-    public String getOwnerName() {
-        return ownerName;
-    }
-
-    public long getBalance() {
-        return balance;
-    }
-
-    public boolean isActive() {
-        return active;
-    }
-
-    // Setters (only for ownerName and active, NOT for balance)
     public void setOwnerName(String ownerName) {
         this.ownerName = ownerName;
     }
@@ -78,7 +60,6 @@ public class Account {
         this.active = active;
     }
 
-    // Supplementary: Add a helper that moves an amount from one Account to another using withdraw and deposit
     public static boolean transfer(Account source, Account destination, long amount) {
         if (amount <= 0) {
             System.out.println("[ERROR] Transfer amount must be positive.");
@@ -93,14 +74,41 @@ public class Account {
             System.out.println("[TRANSFER] Transfer successful!");
             return true;
         } else {
-            System.out.println("[TRANSFER] Transfer failed due to insufficient funds or validation errors.");
+            System.out.println("[TRANSFER] Transfer failed.");
             return false;
         }
     }
 
+    // (1) In Account, override the toString() method (showing whether the account is active)
     @Override
     public String toString() {
         return "Account[No=" + accountNumber + ", Owner=" + ownerName 
                + ", Balance=Rs. " + balance + ", Active=" + active + "]";
+    }
+
+    // (2) In Account, override equals(Object o) and hashCode() by accountNumber
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Account account = (Account) o;
+        return Objects.equals(accountNumber, account.accountNumber);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(accountNumber);
+    }
+
+    // Supplementary: Add a method that returns a formatted, multi-line statement string for an account
+    public String getStatement() {
+        return "----------------------------------------\n" +
+               "           ACCOUNT STATEMENT            \n" +
+               "----------------------------------------\n" +
+               "Account Number : " + accountNumber + "\n" +
+               "Owner Name     : " + ownerName + "\n" +
+               "Current Balance: Rs. " + balance + "\n" +
+               "Account Status : " + (active ? "ACTIVE" : "INACTIVE") + "\n" +
+               "----------------------------------------";
     }
 }

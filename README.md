@@ -1,6 +1,6 @@
 # OOP Lab Practical Portfolio — Semester Work
 
-This repository contains the complete Java solutions for **Practical 1** and **Practical 2**, organized into practice programs and the semester-long **MiniBank** project.
+This repository contains the complete Java solutions for **Practical 1**, **Practical 2**, and **Practical 3**, organized into practice programs and the semester-long **MiniBank** project.
 
 ---
 
@@ -16,8 +16,18 @@ A.lab practical/
 │   ├── Thermostat.java
 │   ├── CinemaShow.java
 │   └── ParkingLot.java
-├── Customer.java            (Practical 2 — MiniBank Customer Entity)
-├── Account.java             (Practical 2 — MiniBank Account Entity)
+├── lab-03/                  (Practical 3 — Practice Programs)
+│   ├── point/
+│   │   ├── Point.java
+│   │   └── PointDriver.java
+│   ├── card/
+│   │   ├── Card.java
+│   │   └── CardDriver.java
+│   └── fraction/
+│       ├── Fraction.java
+│       └── FractionDriver.java
+├── Customer.java            (Practical 2 & 3 — MiniBank Customer Entity with Address & Cloneable)
+├── Account.java             (Practical 2 & 3 — MiniBank Account Entity with equals/hashCode/toString)
 ├── MiniBank.java            (Interactive Banking Console Shell Application)
 ├── .gitignore               (Configured to ignore compiled .class files)
 └── README.md                (Portfolio Documentation & Answers to Lab Questions)
@@ -32,7 +42,7 @@ Make sure you have JDK 17 or higher installed on your system. Run all commands f
 ### 1. Compiling All Programs
 To compile all practice programs and the main project, run:
 ```powershell
-javac lab-01/*.java lab-02/*.java Customer.java Account.java MiniBank.java
+javac lab-01/*.java lab-02/*.java lab-03/point/*.java lab-03/card/*.java lab-03/fraction/*.java Customer.java Account.java MiniBank.java
 ```
 
 ### 2. Running Practical 1 Programs
@@ -63,7 +73,21 @@ javac lab-01/*.java lab-02/*.java Customer.java Account.java MiniBank.java
   java -cp lab-02 ParkingLot
   ```
 
-### 4. Running the MiniBank Project
+### 4. Running Practical 3 Programs
+* **Distinct Points:**
+  ```powershell
+  java -cp lab-03/point PointDriver
+  ```
+* **Duplicate Card Check:**
+  ```powershell
+  java -cp lab-03/card CardDriver
+  ```
+* **Fractions Equivalence:**
+  ```powershell
+  java -cp lab-03/fraction FractionDriver
+  ```
+
+### 5. Running the MiniBank Project
 To start the fully interactive banking application:
 ```powershell
 java MiniBank
@@ -105,6 +129,22 @@ java MiniBank
 
 ---
 
+### 💡 Practical 3 Questions
+
+#### 1. Why must equals() and hashCode() be overridden together?
+* **The contract:** According to the Java specification, if two objects are equal (as defined by `equals()`), they **must** return the same hash code (from `hashCode()`).
+* **Why it matters:** Hashing-based collections (like `HashSet` and `HashMap`) use the object's `hashCode()` to find the memory bucket and then use `equals()` to search for the element inside that bucket. If they are not overridden together, two logically equal objects might return different hash codes, placing them in different buckets. This breaks the collection's ability to locate values or prevent duplicates.
+
+#### 2. What does the default Object.toString() return, and why override it?
+* **Default return:** The default implementation in `java.lang.Object` returns a string containing the class name, followed by the `@` symbol, and the hexadecimal representation of the object's hash code (e.g., `Account@5e25a50d`).
+* **Why override it:** It is overridden to output a clear, user-friendly summary of the object's state (e.g., showing account numbers, balances, and names). This is crucial for logging, debugging, and printing messages.
+
+#### 3. What is the difference between a static nested class and an inner class?
+* **Static Nested Class:** Declared with the `static` keyword. It acts like an ordinary top-level class but is packaged inside another class for namespace scoping. It **cannot** directly access the instance variables or non-static methods of the outer class without creating an instance of the outer class.
+* **Inner Class (Non-static Nested Class):** Declared without the `static` keyword. Each instance is bound to a specific instance of the outer class. It **can** directly access all variables and methods of its outer class (including private ones).
+
+---
+
 ## 🛠️ Implemented Features & Supplementary Solutions
 
 ### Practical 1
@@ -114,4 +154,8 @@ java MiniBank
 ### Practical 2
 * **Positive Input Enforcements:** Both `deposit()` and `withdraw()` reject negative or zero values.
 * **Local Transfer Helper:** Implemented `Account.transfer(Account source, Account destination, long amount)` which safely withdraws from one account and deposits into another, returning transaction status.
-* **Full MiniBank Integration:** Pre-loads 3 testing accounts at startup to run the requested transactions, and then launches the main menu where you can open accounts, transfer money, deposit, withdraw, and check timings in real-time.
+
+### Practical 3
+* **Account Statement:** Added `getStatement()` method to `Account` that returns a formatted multi-line statement.
+* **Active Status Display:** `Account.toString()` includes active status details (e.g., `Active=true`).
+* **Deep Customer Cloning:** `Customer` implements `Cloneable` and performs a deep clone of the nested `Address` class.
