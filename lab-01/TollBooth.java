@@ -1,5 +1,3 @@
-package lab_01;
-
 import java.util.Scanner;
 
 // (a) Define a record Vehicle(String number, String type).
