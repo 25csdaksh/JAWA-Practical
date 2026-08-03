@@ -26,8 +26,23 @@ A.lab practical/
 │   └── fraction/
 │       ├── Fraction.java
 │       └── FractionDriver.java
+├── lab-04/                  (Practical 4 — Practice Programs)
+│   ├── password/
+│   │   ├── PasswordChecker.java
+│   │   └── Driver.java
+│   ├── chat/
+│   │   ├── ChatFilter.java
+│   │   └── Driver.java
+│   └── template/
+│       ├── TemplateFiller.java
+│       └── Driver.java
 ├── Customer.java            (Practical 2 & 3 — MiniBank Customer Entity with Address & Cloneable)
 ├── Account.java             (Practical 2 & 3 — MiniBank Account Entity with equals/hashCode/toString)
+├── Validator.java           (Practical 4 — MiniBank Regex Inputs Validator)
+├── TransactionType.java     (Practical 4 — MiniBank Transaction Types Enum)
+├── Command.java             (Practical 4 — MiniBank Transaction Command Record)
+├── CommandParser.java       (Practical 4 — MiniBank Command String Parser)
+├── StatementFormatter.java  (Practical 4 — MiniBank Account Statement Formatter)
 ├── MiniBank.java            (Interactive Banking Console Shell Application)
 ├── .gitignore               (Configured to ignore compiled .class files)
 └── README.md                (Portfolio Documentation & Answers to Lab Questions)
@@ -40,9 +55,16 @@ A.lab practical/
 Make sure you have JDK 17 or higher installed on your system. Run all commands from the repository root directory.
 
 ### 1. Compiling All Programs
-To compile all practice programs and the main project, run:
+To compile the core MiniBank files and Practicals 1-3, run:
 ```powershell
-javac lab-01/*.java lab-02/*.java lab-03/point/*.java lab-03/card/*.java lab-03/fraction/*.java Customer.java Account.java MiniBank.java
+javac lab-01/*.java lab-02/*.java lab-03/point/*.java lab-03/card/*.java lab-03/fraction/*.java Customer.java Account.java MiniBank.java Validator.java TransactionType.java Command.java CommandParser.java StatementFormatter.java
+```
+
+To compile the Practical 4 Hour 1 programs individually, run:
+```powershell
+javac lab-04/password/*.java
+javac lab-04/chat/*.java
+javac lab-04/template/*.java
 ```
 
 ### 2. Running Practical 1 Programs
@@ -87,7 +109,21 @@ javac lab-01/*.java lab-02/*.java lab-03/point/*.java lab-03/card/*.java lab-03/
   java -cp lab-03/fraction FractionDriver
   ```
 
-### 5. Running the MiniBank Project
+### 5. Running Practical 4 Programs
+* **Password Strength Checker:**
+  ```powershell
+  java -cp lab-04/password Driver
+  ```
+* **Chat Log Filter:**
+  ```powershell
+  java -cp lab-04/chat Driver
+  ```
+* **Template Filler:**
+  ```powershell
+  java -cp lab-04/template Driver
+  ```
+
+### 6. Running the MiniBank Project
 To start the fully interactive banking application:
 ```powershell
 java MiniBank
