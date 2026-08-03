@@ -143,6 +143,26 @@ java MiniBank
 * **Static Nested Class:** Declared with the `static` keyword. It acts like an ordinary top-level class but is packaged inside another class for namespace scoping. It **cannot** directly access the instance variables or non-static methods of the outer class without creating an instance of the outer class.
 * **Inner Class (Non-static Nested Class):** Declared without the `static` keyword. Each instance is bound to a specific instance of the outer class. It **can** directly access all variables and methods of its outer class (including private ones).
 
+
+---
+
+### 💡 Practical 4 Questions
+
+#### 1. What is the difference between String, StringBuilder and StringBuffer, and when is each preferred?
+* **`String`:** Immutable character sequence. Operations like concatenation create new String objects, which can cause high memory overhead in loops. Preferred for constant/read-only text, keys in maps, and general variables where thread-safety and simplicity are desired.
+* **`StringBuilder`:** Mutable character sequence. Modifies characters in-place without generating garbage objects. It is **not thread-safe** (no synchronization overhead). Preferred for single-threaded string manipulation, dynamic construction, and text formatting in loops.
+* **`StringBuffer`:** Mutable character sequence similar to `StringBuilder`, but **thread-safe** because its methods are synchronized. It introduces synchronization overhead. Preferred in multi-threaded environments where a single buffer is concurrently modified by multiple threads.
+
+#### 2. What does the regular expression [6-9][0-9]{9} match, and why use anchors?
+* **Match:** Matches any string that starts with a digit from `6` to `9`, followed by exactly 9 digits between `0` and `9` (representing a standard 10-digit Indian mobile number).
+* **Why use anchors (`^` and `$`):** Caret (`^`) asserts the start of the string, and dollar (`$`) asserts the end of the string. Using `^[6-9][0-9]{9}$` guarantees that the *entire* input strictly conforms to the pattern. Without anchors, a longer string like `1239876543210456` would contain a matching substring and falsely validate, or invalid prefix/suffix characters would be ignored.
+
+#### 3. Why should input be validated at the boundary before it is used?
+* **Security:** Defends the system against malicious inputs (e.g. injection attacks, overflow payloads) before they reach internal layers.
+* **Fail-Fast:** Detects and reports invalid parameters immediately, preventing wasted resources (CPU/memory) on processing doomed requests.
+* **Data Integrity:** Ensures internal domain objects and databases are never transitioned into inconsistent, corrupt, or illegal states.
+* **Separation of Concerns:** Business logic code can focus purely on banking operations under the safe assumption that incoming data is clean and valid.
+
 ---
 
 ## 🛠️ Implemented Features & Supplementary Solutions
@@ -159,3 +179,13 @@ java MiniBank
 * **Account Statement:** Added `getStatement()` method to `Account` that returns a formatted multi-line statement.
 * **Active Status Display:** `Account.toString()` includes active status details (e.g., `Active=true`).
 * **Deep Customer Cloning:** `Customer` implements `Cloneable` and performs a deep clone of the nested `Address` class.
+
+### Practical 4
+* **Password Strength Checker:** Multi-rule checking (length, uppercase, digit, special characters) with a strength evaluation method.
+* **Chat Log Filter:** Stream filter logging with `split()` tokenization, case-insensitive keyword searches, and `StringBuilder` report assembly.
+* **Template Placeholder Substitution:** Dynamic placeholder matching and lookup replacement (`[?]` for missing parameters) using `Pattern` and `Matcher`.
+* **Input Verification Regexes:** Pre-compiled standard Pattern regexes in `Validator` class for Mobile, Email, PAN, and IFSC.
+* **Positive Amount Regex:** Supplementary method `Validator.isValidAmount` enforcing positive non-zero integers.
+* **Transaction Commands:** Lightweight Java `record` class `Command` and type-safe `TransactionType` enum representing transactions.
+* **Command Line Parser:** Splits input strings, validates token count (reporting errors for malformed lines), validates transaction enums, and returns parsed commands.
+* **Statement Formatter:** Implemented `StatementFormatter.buildStatement` using a `StringBuilder`.

@@ -78,9 +78,62 @@ public class MiniBank {
         System.out.println("Are addresses shared reference? (original.addr == cloned.addr) -> " 
                            + (originalCustomer.getAddress() == clonedCustomer.getAddress()));
 
-        // Supplementary: Format and print Statement
-        System.out.println("\nPrinting multi-line Account Statement:");
+        // Supplementary: Format and print Statement (Practical 3 version)
+        System.out.println("\nPrinting multi-line Account Statement (Practical 3 getStatement()):");
         System.out.println(accounts[0].getStatement());
+
+        System.out.println("-----------------------------------------------------------");
+
+        System.out.println("\n--- [PRACTICAL 4 DEMONSTRATION & TEST RUN] ---");
+
+        // 1. Test Validator
+        System.out.println("Testing Mobile Number Validator:");
+        System.out.println(" - 9876543210 (Correct): " + Validator.isValidMobile("9876543210"));
+        System.out.println(" - 5876543210 (Wrong  ): " + Validator.isValidMobile("5876543210"));
+
+        System.out.println("\nTesting Email Validator:");
+        System.out.println(" - daksh@charusat.edu.in (Correct): " + Validator.isValidEmail("daksh@charusat.edu.in"));
+        System.out.println(" - daksh.charusat.edu.in (Wrong  ): " + Validator.isValidEmail("daksh.charusat.edu.in"));
+
+        System.out.println("\nTesting PAN Validator:");
+        System.out.println(" - ABCDE1234F (Correct): " + Validator.isValidPan("ABCDE1234F"));
+        System.out.println(" - ABC1234F   (Wrong  ): " + Validator.isValidPan("ABC1234F"));
+
+        System.out.println("\nTesting IFSC Validator:");
+        System.out.println(" - BARB0GUJARA (Correct): " + Validator.isValidIfsc("BARB0GUJARA"));
+        System.out.println(" - BARB1GUJARA (Wrong  ): " + Validator.isValidIfsc("BARB1GUJARA"));
+
+        System.out.println("\nTesting Positive Amount Validator (Supplementary):");
+        System.out.println(" - 500 (Correct): " + Validator.isValidAmount("500"));
+        System.out.println(" - -50 (Wrong  ): " + Validator.isValidAmount("-50"));
+        System.out.println(" - 0   (Wrong  ): " + Validator.isValidAmount("0"));
+
+        // 2. Test Parser
+        System.out.println("\nTesting Command Parser:");
+        String commandLine = "DEPOSIT AC0001 500";
+        System.out.println("Parsing line: \"" + commandLine + "\"");
+        try {
+            Command cmd = CommandParser.parse(commandLine);
+            System.out.println("Parsed Command Parts:");
+            System.out.println(" - Type: " + cmd.type());
+            System.out.println(" - Account Number: " + cmd.accountNumber());
+            System.out.println(" - Amount: " + cmd.amount());
+        } catch (Exception e) {
+            System.out.println("Error parsing command: " + e.getMessage());
+        }
+
+        System.out.println("\nTesting Command Parser Error Handling (Wrong number of parts):");
+        String wrongCommandLine = "WITHDRAW AC0001";
+        System.out.println("Parsing line: \"" + wrongCommandLine + "\"");
+        try {
+            CommandParser.parse(wrongCommandLine);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Expected Exception Caught: " + e.getMessage());
+        }
+
+        // 3. Test StatementFormatter
+        System.out.println("\nPrinting Statement via StatementFormatter:");
+        System.out.println(StatementFormatter.buildStatement(accounts[0]));
 
         System.out.println("-----------------------------------------------------------\n");
 
