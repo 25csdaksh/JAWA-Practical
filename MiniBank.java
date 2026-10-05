@@ -11,6 +11,7 @@ public class MiniBank {
         WITHDRAW,
         TRANSFER,
         VIEW_STATEMENT,
+        VALIDATE_ACCOUNT,
         VERIFY_CREDENTIALS,
         WORKING_HOURS,
         EXIT
@@ -37,70 +38,49 @@ public class MiniBank {
         accounts[accountCount++] = new CurrentAccount("Prof. Sharma", 40000, 15000);
         accounts[accountCount++] = new FixedDepositAccount("Alice Smith", 100000);
 
-        System.out.println("\n--- [PRACTICAL 6 DEMONSTRATION: INTERFACES, PACKAGES & LAMBDAS] ---");
+        System.out.println("\n--- [PRACTICAL 7 DEMONSTRATION: ANNOTATIONS & REFLECTION VALIDATOR] ---");
 
-        // 1. Functional Interface WithdrawRule: Anonymous Class vs Lambda Expression
-        System.out.println("\n1. Testing WithdrawRule Functional Interface (Anonymous Class vs Lambda):");
+        // 1. Valid Account Validation Test
+        System.out.println("\n1. Testing AnnotationValidator on a Valid Account (AC0001):");
+        String[] validErrors = AnnotationValidator.validate(accounts[0]);
+        if (validErrors.length == 0) {
+            System.out.println("   [SUCCESS] Account AC0001 is completely valid! (0 metadata errors found)");
+        } else {
+            System.out.println("   [FAIL] Unexpected validation errors: " + java.util.Arrays.toString(validErrors));
+        }
 
-        // (a) Implemented as an Anonymous Class (Rule: Max Rs. 20,000 per transaction & check account capability)
+        // 2. Invalid Account Validation Test (Negative Balance: -100)
+        System.out.println("\n2. Testing AnnotationValidator on an Invalid Account with Negative Balance (-100):");
+        Account invalidNegativeAccount = new SavingsAccount("Invalid Account User", -100, 500);
+        String[] negativeErrors = AnnotationValidator.validate(invalidNegativeAccount);
+        System.out.println("   Validation Result for Invalid Account (" + negativeErrors.length + " errors detected):");
+        for (String err : negativeErrors) {
+            System.out.println("    -> " + err);
+        }
+
+        // 3. Supplementary Test: @MaxLength constraint violation
+        System.out.println("\n3. Testing Supplementary @MaxLength Annotation Violation (Owner name > 25 chars):");
+        Account longNameAccount = new CurrentAccount("Dr. Dakshina Murthy Soni The Third of Charusat", 5000, 2000);
+        String[] maxLengthErrors = AnnotationValidator.validate(longNameAccount);
+        System.out.println("   Validation Result for Long Name Account (" + maxLengthErrors.length + " errors detected):");
+        for (String err : maxLengthErrors) {
+            System.out.println("    -> " + err);
+        }
+
+        System.out.println("\n--- [PRACTICAL 6 RECAP: INTERFACES, LAMBDAS & DEFAULT METHODS] ---");
+        // Functional Interface WithdrawRule via Anonymous Class and Lambda
         WithdrawRule anonymousNightLimitRule = new WithdrawRule() {
             @Override
             public boolean allow(Account account, long amount) {
                 return amount <= 20000 && account.canWithdraw(amount);
             }
         };
-
-        // (b) Implemented as a Lambda Expression (Rule: Max Rs. 50,000 ATM limit & check account capability)
         WithdrawRule lambdaAtmLimitRule = (account, amount) -> (amount <= 50000 && account.canWithdraw(amount));
 
-        Account testSavings = accounts[0];
-        long testAmt1 = 15000;
-        long testAmt2 = 25000;
-
-        System.out.println("Test Account: " + testSavings.getAccountNumber() + " | Balance: Rs. " + testSavings.getBalance());
-        System.out.println(String.format(" - Attempt Rs. %d -> Anonymous Class Rule (Max 20k) Allowed? %b",
-                testAmt1, anonymousNightLimitRule.allow(testSavings, testAmt1)));
-        System.out.println(String.format(" - Attempt Rs. %d -> Anonymous Class Rule (Max 20k) Allowed? %b",
-                testAmt2, anonymousNightLimitRule.allow(testSavings, testAmt2)));
-        System.out.println(String.format(" - Attempt Rs. %d -> Lambda Expression Rule (Max 50k) Allowed? %b",
-                testAmt2, lambdaAtmLimitRule.allow(testSavings, testAmt2)));
-
-        // 2. Default Methods in InterestBearing interface
-        System.out.println("\n2. Testing Default Methods in InterestBearing Interface:");
-        System.out.println(String.format("%-8s | %-16s | %-12s | %-16s | %-20s",
-                "Acc No", "Owner", "Rate", "Yearly Interest", "5-Yr Compounded Value"));
-        System.out.println("----------------------------------------------------------------------------------");
-        for (int i = 0; i < accountCount; i++) {
-            Account acc = accounts[i];
-            // Calling default method (1): yearlyInterest()
-            double yearly = acc.yearlyInterest();
-            // Calling supplementary default method (2): projectedBalance(years)
-            double projected5Yr = acc.projectedBalance(5);
-
-            System.out.println(String.format("%-8s | %-16s | %-10.1f%% | Rs. %-12.2f | Rs. %-16.2f",
-                    acc.getAccountNumber(), acc.getOwnerName(), acc.interestRate(), yearly, projected5Yr));
-        }
-        System.out.println("----------------------------------------------------------------------------------");
-
-        // 3. Marker Interface Check (Premium)
-        System.out.println("\n3. Testing Premium Marker Interface Detection:");
-        for (int i = 0; i < accountCount; i++) {
-            Account acc = accounts[i];
-            if (acc instanceof Premium) {
-                System.out.println(" [VIP PRIVILEGE] " + acc.getAccountNumber() + " (" + acc.getOwnerName() 
-                        + ") is marked as a PREMIUM account. Eligible for priority concierge & relationship manager.");
-            } else {
-                System.out.println(" [STANDARD] " + acc.getAccountNumber() + " (" + acc.getOwnerName() 
-                        + ") is a Standard account.");
-            }
-        }
-
-        // 4. Static Import Test (Using Validator methods directly without class qualifier)
-        System.out.println("\n4. Testing Static Import of Validator Methods:");
-        System.out.println(" - isValidMobile(\"9876543210\"): " + isValidMobile("9876543210"));
-        System.out.println(" - isValidEmail(\"daksh@charusat.edu.in\"): " + isValidEmail("daksh@charusat.edu.in"));
-        System.out.println(" - isValidPan(\"ABCDE1234F\"): " + isValidPan("ABCDE1234F"));
-        System.out.println(" - isValidAmount(\"5000\"): " + isValidAmount("5000"));
+        System.out.println("WithdrawRule Evaluation for AC0001 (Balance Rs. 25,000):");
+        System.out.println(" - Attempt Rs. 15,000 -> Anonymous Night Rule (Max 20k): " + anonymousNightLimitRule.allow(accounts[0], 15000));
+        System.out.println(" - Attempt Rs. 25,000 -> Anonymous Night Rule (Max 20k): " + anonymousNightLimitRule.allow(accounts[0], 25000));
+        System.out.println(" - Attempt Rs. 25,000 -> Lambda ATM Rule (Max 50k):      " + lambdaAtmLimitRule.allow(accounts[0], 25000));
 
         System.out.println("-----------------------------------------------------------\n");
 
@@ -114,11 +94,12 @@ public class MiniBank {
             System.out.println("3. Withdraw");
             System.out.println("4. Transfer (Local)");
             System.out.println("5. View Official Account Statement");
-            System.out.println("6. Verify Customer Credentials (Static Import Validator)");
-            System.out.println("7. Check Bank Working Hours");
-            System.out.println("8. Exit");
+            System.out.println("6. Validate Account Metadata via Reflection (Practical 7)");
+            System.out.println("7. Verify Customer Credentials (Static Import Validator)");
+            System.out.println("8. Check Bank Working Hours");
+            System.out.println("9. Exit");
             System.out.println("------------------------------------------------------------");
-            System.out.print("Please enter your choice (1-8): ");
+            System.out.print("Please enter your choice (1-9): ");
 
             int choice = -1;
             if (scanner.hasNextInt()) {
@@ -134,14 +115,15 @@ public class MiniBank {
                 case 3 -> MenuOption.WITHDRAW;
                 case 4 -> MenuOption.TRANSFER;
                 case 5 -> MenuOption.VIEW_STATEMENT;
-                case 6 -> MenuOption.VERIFY_CREDENTIALS;
-                case 7 -> MenuOption.WORKING_HOURS;
-                case 8 -> MenuOption.EXIT;
+                case 6 -> MenuOption.VALIDATE_ACCOUNT;
+                case 7 -> MenuOption.VERIFY_CREDENTIALS;
+                case 8 -> MenuOption.WORKING_HOURS;
+                case 9 -> MenuOption.EXIT;
                 default -> null;
             };
 
             if (selectedOption == null) {
-                System.out.println("\n[ERROR] Invalid menu choice. Please select a valid number between 1 and 8.");
+                System.out.println("\n[ERROR] Invalid menu choice. Please select a valid number between 1 and 9.");
                 continue;
             }
 
@@ -194,6 +176,15 @@ public class MiniBank {
                         }
                     }
 
+                    // Validate newly created account through AnnotationValidator reflection
+                    String[] validationErrors = AnnotationValidator.validate(newAcc);
+                    if (validationErrors.length > 0) {
+                        System.out.println("\n[METADATA WARNING] Account created with annotation warnings:");
+                        for (String err : validationErrors) {
+                            System.out.println(" -> " + err);
+                        }
+                    }
+
                     accounts[accountCount++] = newAcc;
                     System.out.println("\n[SUCCESS] Account successfully opened:\n" + newAcc);
                 }
@@ -220,7 +211,6 @@ public class MiniBank {
                         long amount = scanner.nextLong();
                         scanner.nextLine();
                         
-                        // Validating withdrawal through lambda WithdrawRule
                         if (lambdaAtmLimitRule.allow(acc, amount)) {
                             if (acc.withdraw(amount)) {
                                 System.out.println("[SUCCESS] Withdrawal completed. Updated details: " + acc);
@@ -257,6 +247,25 @@ public class MiniBank {
                     if (acc != null) {
                         System.out.println("\n" + StatementFormatter.buildStatement(acc));
                         System.out.println(String.format("5-Year Compound Projection: Rs. %.2f", acc.projectedBalance(5)));
+                    } else {
+                        System.out.println("\n[ERROR] Account not found!");
+                    }
+                }
+                case VALIDATE_ACCOUNT -> {
+                    System.out.print("Enter Account Number to validate: ");
+                    String accNo = scanner.nextLine().trim();
+                    Account acc = findAccount(accounts, accountCount, accNo);
+                    if (acc != null) {
+                        System.out.println("\n--- Inspecting Metadata via AnnotationValidator ---");
+                        String[] errors = AnnotationValidator.validate(acc);
+                        if (errors.length == 0) {
+                            System.out.println("[VALID] Account satisfies all metadata constraints (@Id, @Positive, @MaxLength)!");
+                        } else {
+                            System.out.println("[INVALID] Constraints violated (" + errors.length + "):");
+                            for (String err : errors) {
+                                System.out.println(" - " + err);
+                            }
+                        }
                     } else {
                         System.out.println("\n[ERROR] Account not found!");
                     }

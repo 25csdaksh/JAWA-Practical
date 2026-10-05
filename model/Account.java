@@ -1,13 +1,23 @@
 package model;
 
 import java.util.Objects;
+import model.annotation.Id;
+import model.annotation.MaxLength;
+import model.annotation.Positive;
 import service.InterestBearing;
 import service.Transactable;
 
 public abstract class Account implements Transactable, InterestBearing {
+    @Id
+    @MaxLength(value = 10, message = "Account number length cannot exceed 10 characters")
     private final String accountNumber;
+
+    @MaxLength(value = 25, message = "Owner name exceeds maximum allowed length")
     private String ownerName;
+
+    @Positive(message = "must be > 0")
     private long balance; // whole rupees
+
     private boolean active;
 
     private static long accountCounter = 0;
@@ -31,6 +41,7 @@ public abstract class Account implements Transactable, InterestBearing {
     // Abstract methods to be implemented by subclasses
     @Override
     public abstract double interestRate();
+
     public abstract boolean canWithdraw(long amount);
 
     // Monthly interest calculation using interestRate() and balance
