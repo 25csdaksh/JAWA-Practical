@@ -1,6 +1,6 @@
 # OOP Lab Practical Portfolio — Semester Work
 
-This repository contains the complete Java solutions for **Practical 1**, **Practical 2**, and **Practical 3**, organized into practice programs and the semester-long **MiniBank** project.
+This repository contains the complete Java solutions for **Practical 1**, **Practical 2**, **Practical 3**, **Practical 4**, and **Practical 5**, organized into practice programs and the semester-long **MiniBank** project.
 
 ---
 
@@ -36,14 +36,36 @@ A.lab practical/
 │   └── template/
 │       ├── TemplateFiller.java
 │       └── Driver.java
+├── lab-05/                  (Practical 5 — Practice Programs)
+│   ├── shape/               (Part A1: Polymorphic Shape Areas)
+│   │   ├── Shape.java
+│   │   ├── Circle.java
+│   │   ├── Rectangle.java
+│   │   ├── Triangle.java
+│   │   └── ShapeDriver.java
+│   ├── payroll/             (Part A2: Employee Hierarchy & Payroll)
+│   │   ├── Employee.java
+│   │   ├── FullTime.java
+│   │   ├── PartTime.java
+│   │   ├── Intern.java
+│   │   └── PayrollDriver.java
+│   └── media/               (Part A3: Advanced Late Fee Calculator)
+│       ├── MediaItem.java
+│       ├── Book.java
+│       ├── DVD.java
+│       ├── AudioBook.java
+│       └── MediaDriver.java
 ├── Customer.java            (Practical 2 & 3 — MiniBank Customer Entity with Address & Cloneable)
-├── Account.java             (Practical 2 & 3 — MiniBank Account Entity with equals/hashCode/toString)
+├── Account.java             (Practical 5 — Abstract Base Account with interestRate & canWithdraw)
+├── SavingsAccount.java      (Practical 5 — 4% Interest with Minimum Balance Enforcement)
+├── CurrentAccount.java      (Practical 5 — 0% Interest with Overdraft Limit Support)
+├── FixedDepositAccount.java (Practical 5 — 7% Interest with Maturity Lock Protection)
 ├── Validator.java           (Practical 4 — MiniBank Regex Inputs Validator)
 ├── TransactionType.java     (Practical 4 — MiniBank Transaction Types Enum)
 ├── Command.java             (Practical 4 — MiniBank Transaction Command Record)
 ├── CommandParser.java       (Practical 4 — MiniBank Command String Parser)
 ├── StatementFormatter.java  (Practical 4 — MiniBank Account Statement Formatter)
-├── MiniBank.java            (Interactive Banking Console Shell Application)
+├── MiniBank.java            (Interactive Banking Console Shell Application with Polymorphic Accounts)
 ├── .gitignore               (Configured to ignore compiled .class files)
 └── README.md                (Portfolio Documentation & Answers to Lab Questions)
 ```
@@ -55,16 +77,9 @@ A.lab practical/
 Make sure you have JDK 17 or higher installed on your system. Run all commands from the repository root directory.
 
 ### 1. Compiling All Programs
-To compile the core MiniBank files and Practicals 1-3, run:
+To compile the core MiniBank files and all Practicals (1 through 5), run:
 ```powershell
-javac lab-01/*.java lab-02/*.java lab-03/point/*.java lab-03/card/*.java lab-03/fraction/*.java Customer.java Account.java MiniBank.java Validator.java TransactionType.java Command.java CommandParser.java StatementFormatter.java
-```
-
-To compile the Practical 4 Hour 1 programs individually, run:
-```powershell
-javac lab-04/password/*.java
-javac lab-04/chat/*.java
-javac lab-04/template/*.java
+javac lab-01/*.java lab-02/*.java lab-03/point/*.java lab-03/card/*.java lab-03/fraction/*.java lab-04/password/*.java lab-04/chat/*.java lab-04/template/*.java lab-05/shape/*.java lab-05/payroll/*.java lab-05/media/*.java Customer.java Account.java SavingsAccount.java CurrentAccount.java FixedDepositAccount.java MiniBank.java Validator.java TransactionType.java Command.java CommandParser.java StatementFormatter.java
 ```
 
 ### 2. Running Practical 1 Programs
@@ -123,8 +138,22 @@ javac lab-04/template/*.java
   java -cp lab-04/template Driver
   ```
 
-### 6. Running the MiniBank Project
-To start the fully interactive banking application:
+### 6. Running Practical 5 Programs
+* **Shape Areas (Polymorphism):**
+  ```powershell
+  java -cp lab-05/shape ShapeDriver
+  ```
+* **Payroll System (Polymorphism & `instanceof`):**
+  ```powershell
+  java -cp lab-05/payroll PayrollDriver
+  ```
+* **Media Late Fee Batch Calculator (Advanced Learners):**
+  ```powershell
+  java -cp lab-05/media MediaDriver
+  ```
+
+### 7. Running the MiniBank Project
+To start the fully interactive banking application with polymorphic accounts:
 ```powershell
 java MiniBank
 ```
@@ -179,7 +208,6 @@ java MiniBank
 * **Static Nested Class:** Declared with the `static` keyword. It acts like an ordinary top-level class but is packaged inside another class for namespace scoping. It **cannot** directly access the instance variables or non-static methods of the outer class without creating an instance of the outer class.
 * **Inner Class (Non-static Nested Class):** Declared without the `static` keyword. Each instance is bound to a specific instance of the outer class. It **can** directly access all variables and methods of its outer class (including private ones).
 
-
 ---
 
 ### 💡 Practical 4 Questions
@@ -198,6 +226,25 @@ java MiniBank
 * **Fail-Fast:** Detects and reports invalid parameters immediately, preventing wasted resources (CPU/memory) on processing doomed requests.
 * **Data Integrity:** Ensures internal domain objects and databases are never transitioned into inconsistent, corrupt, or illegal states.
 * **Separation of Concerns:** Business logic code can focus purely on banking operations under the safe assumption that incoming data is clean and valid.
+
+---
+
+### 💡 Practical 5 Questions
+
+#### 1. What is the difference between an abstract class and a concrete class?
+* **Instantiation:** An **abstract class** cannot be instantiated directly using `new` (e.g., `new Account(...)` will cause a compile-time error). It serves as an incomplete conceptual template. A **concrete class** is a complete, fully implemented class that can be instantiated directly (e.g., `new SavingsAccount(...)`).
+* **Abstract Methods:** An abstract class can declare **abstract methods** (method signatures with no body using the `abstract` keyword) that subclasses *must* override. A concrete class cannot declare abstract methods and must provide concrete implementations for all inherited abstract methods.
+* **Purpose:** Abstract classes define common state, shared helper methods, and contract specifications for a family of related objects, enabling polymorphic operations while preventing the creation of generic, incomplete base objects.
+
+#### 2. What is dynamic method dispatch (run-time polymorphism)?
+* **Definition:** Dynamic method dispatch is the mechanism by which Java resolves a call to an overridden method at **run time** rather than at compile time based on the actual object type being referenced, not the reference variable's type.
+* **How it works:** When a superclass reference (such as `Account acc`) points to a subclass instance (`SavingsAccount`, `CurrentAccount`, or `FixedDepositAccount`), calling `acc.interestRate()` causes the JVM to look up the object's virtual method table (vtable) and execute the subtype's specific version of `interestRate()`.
+* **Benefit:** Allows the client code (like loops or managers) to write flexible, extensible algorithms that work with generalized base types without needing hardcoded `switch` statements or subtype checks.
+
+#### 3. What does the super keyword do in a subclass constructor?
+* **Constructor Chaining:** In a subclass constructor, `super(...)` invokes a constructor of the direct superclass.
+* **Initialization Order:** It ensures that all inherited fields in the base class (such as `accountNumber`, `ownerName`, and `balance` in `Account`, or `name` and `id` in `Employee`) are properly initialized and validated before the subclass executes its own constructor body.
+* **Syntax Requirement:** If used, `super(...)` must strictly be the **very first statement** in the subclass constructor. If omitted, Java automatically inserts a call to the parameterless `super()` constructor (if one exists).
 
 ---
 
@@ -225,3 +272,26 @@ java MiniBank
 * **Transaction Commands:** Lightweight Java `record` class `Command` and type-safe `TransactionType` enum representing transactions.
 * **Command Line Parser:** Splits input strings, validates token count (reporting errors for malformed lines), validates transaction enums, and returns parsed commands.
 * **Statement Formatter:** Implemented `StatementFormatter.buildStatement` using a `StringBuilder`.
+
+### Practical 5
+* **Part A1 — Shape Areas (Polymorphism):**
+  - Abstract base class `Shape` with abstract method `double area()`.
+  - Concrete subclasses `Circle`, `Rectangle`, and `Triangle`.
+  - `ShapeDriver` iterates over a polymorphic `Shape[]` array in a single loop, calculating individual areas, running totals, and tracking the shape with the largest area.
+* **Part A2 — Payroll System (Hierarchy & `instanceof`):**
+  - Abstract base class `Employee` with abstract `monthlySalary()` and shared `name`/`id` constructor calling `super(...)`.
+  - Concrete subclasses `FullTime` (fixed salary), `PartTime` (hours × rate), and `Intern` (stipend with university metadata).
+  - `PayrollDriver` processes a mixed array, calculating total company payroll and using Java 17 pattern matching `instanceof` to display special intern verification notices.
+* **Part A3 — Media Late Fee Calculator (Advanced Learners):**
+  - Abstract base class `MediaItem` with abstract `computeLateFee(int daysLate)`.
+  - Concrete subclasses `Book` (grace period + daily rate with maximum cap), `DVD` (premium daily rate), and `AudioBook` (daily rate).
+  - `MediaDriver` processes a batch of returned media items and prints an itemized fee breakdown with grand total.
+* **Part B — MiniBank Polymorphic Account Hierarchy:**
+  - `Account` refactored as an `abstract class` with abstract methods `double interestRate()` and `boolean canWithdraw(long amount)`.
+  - `SavingsAccount` with `minBalance` constraint, returning `4.0%` interest and allowing withdrawals only when balance remains $\ge \text{minBalance}$.
+  - `CurrentAccount` with `overdraftLimit`, returning `0.0%` interest and allowing balance to fall down to $-\text{overdraftLimit}$.
+  - `FixedDepositAccount` returning `7.0%` interest with withdrawal lock protection until maturity.
+  - **Supplementary Solutions:**
+    - `monthlyInterest()` in `Account` computing monthly interest using `interestRate()` and current balance.
+    - `FixedDepositAccount` includes maturity date calculation and `canWithdraw()` validation based on deposit lock status.
+  - `MiniBank` demonstrates dynamic method dispatch on an `Account[]` array, pattern matching with `instanceof`, polymorphic withdrawal validation tests, and full interactive menu support for creating and managing all account subtypes.

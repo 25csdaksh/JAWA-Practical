@@ -16,6 +16,7 @@ public class MiniBank {
         DEPOSIT,
         WITHDRAW,
         TRANSFER,
+        VIEW_STATEMENT,
         WORKING_HOURS,
         EXIT
     }
@@ -36,104 +37,69 @@ public class MiniBank {
         Account[] accounts = new Account[100];
         int accountCount = 0;
 
-        // Pre-load accounts for demonstration
-        accounts[accountCount++] = new Account("Daksh Soni", 1000);
-        accounts[accountCount++] = new Account("Prof. Sharma", 500);
-        accounts[accountCount++] = new Account("Alice Smith");
+        // Pre-load accounts with different concrete subclasses
+        accounts[accountCount++] = new SavingsAccount("Daksh Soni", 15000, 1000);
+        accounts[accountCount++] = new CurrentAccount("Prof. Sharma", 25000, 10000);
+        accounts[accountCount++] = new FixedDepositAccount("Alice Smith", 50000);
 
-        System.out.println("\n--- [PRACTICAL 3 DEMONSTRATION & TEST RUN] ---");
+        System.out.println("\n--- [PRACTICAL 5 DEMONSTRATION: INHERITANCE & POLYMORPHISM] ---");
 
-        // 1. In main, print accounts using toString()
-        System.out.println("Printing accounts using toString():");
+        // 1. Loop through Account[] array calling interestRate() on each (Polymorphism)
+        System.out.println("\nPolymorphic Interest Rate & Account Inspection Loop:");
+        System.out.println(String.format("%-8s | %-16s | %-20s | %-14s | %-16s | %-30s", 
+            "Acc No", "Owner", "Account Type", "Balance", "Interest Rate", "Special Subtype Attribute"));
+        System.out.println("------------------------------------------------------------------------------------------------------------------");
+
         for (int i = 0; i < accountCount; i++) {
-            System.out.println(" - " + accounts[i].toString());
+            Account acc = accounts[i];
+            double rate = acc.interestRate(); // Dynamic method dispatch (Polymorphism)
+            double monthlyInt = acc.monthlyInterest();
+
+            // 2. Use Pattern Matching instanceof to handle each subtype specially
+            String subtypeDetail;
+            if (acc instanceof SavingsAccount sa) {
+                subtypeDetail = "Min Balance Req: Rs. " + sa.getMinBalance();
+            } else if (acc instanceof CurrentAccount ca) {
+                subtypeDetail = "Overdraft Limit: Rs. " + ca.getOverdraftLimit();
+            } else if (acc instanceof FixedDepositAccount fda) {
+                subtypeDetail = "Matures: " + fda.getMaturityDate() + " (Locked=" + !fda.isMatured() + ")";
+            } else {
+                subtypeDetail = "Generic Account";
+            }
+
+            System.out.println(String.format("%-8s | %-16s | %-20s | Rs. %-10d | %-14s | %-30s",
+                acc.getAccountNumber(), acc.getOwnerName(), acc.getClass().getSimpleName(), 
+                acc.getBalance(), String.format("%.1f%% (Rs. %.2f/mo)", rate, monthlyInt), subtypeDetail));
         }
+        System.out.println("------------------------------------------------------------------------------------------------------------------");
 
-        // 2. Compare two Account objects with equals()
-        System.out.println("\nComparing Account 1 (AC0001) and Account 2 (AC0002) using equals():");
-        boolean isEqual = accounts[0].equals(accounts[1]);
-        System.out.println("AC0001 equals AC0002? " + isEqual);
-        System.out.println("Comparing AC0001 with itself using equals():");
-        System.out.println("AC0001 equals AC0001? " + accounts[0].equals(accounts[0]));
+        // 3. Testing Polymorphic Withdrawal & Business Rules
+        System.out.println("\nTesting Polymorphic Withdrawal Rules across Account Types:");
 
-        // 3. Use instanceof to check an object’s type
-        System.out.println("\nChecking object type using instanceof:");
-        Object testObj = accounts[0];
-        if (testObj instanceof Account) {
-            System.out.println("testObj is indeed an instance of Account class.");
+        // Test Savings Account minimum balance protection
+        System.out.println("\n1. Testing SavingsAccount (AC0001) - Balance: Rs. 15,000 | MinBalance: Rs. 1,000");
+        System.out.println("Attempting withdrawal of Rs. 14,500 (would leave Rs. 500 < minBalance):");
+        accounts[0].withdraw(14500); // Should fail
+        System.out.println("Attempting withdrawal of Rs. 10,000 (leaves Rs. 5,000 >= minBalance):");
+        accounts[0].withdraw(10000); // Should succeed
+
+        // Test Current Account overdraft limit
+        System.out.println("\n2. Testing CurrentAccount (AC0002) - Balance: Rs. 25,000 | Overdraft Limit: Rs. 10,000");
+        System.out.println("Attempting withdrawal of Rs. 30,000 (leaves balance Rs. -5,000 within overdraft):");
+        accounts[1].withdraw(30000); // Should succeed
+        System.out.println("Attempting additional withdrawal of Rs. 10,000 (would exceed overdraft limit):");
+        accounts[1].withdraw(10000); // Should fail
+
+        // Test Fixed Deposit Account lock-in and maturity
+        System.out.println("\n3. Testing FixedDepositAccount (AC0003) - Balance: Rs. 50,000 | Locked");
+        System.out.println("Attempting premature withdrawal of Rs. 10,000 on locked FD:");
+        accounts[2].withdraw(10000); // Should fail
+        System.out.println("Simulating maturity for FixedDepositAccount (AC0003)...");
+        if (accounts[2] instanceof FixedDepositAccount fda) {
+            fda.setMatured(true);
+            System.out.println("Attempting withdrawal of Rs. 20,000 post-maturity:");
+            fda.withdraw(20000); // Should succeed
         }
-        if (testObj instanceof Object) {
-            System.out.println("testObj is also an instance of Object class.");
-        }
-
-        // 4. Test Customer Address nested class and clone()
-        System.out.println("\nTesting Customer Address and deep cloning:");
-        Customer.Address addr = new Customer.Address("101 University Road", "Ahmedabad", "380009");
-        Customer originalCustomer = new Customer("Daksh Soni", "daksh@charusat.edu.in", "9876543210", addr);
-        Customer clonedCustomer = originalCustomer.clone();
-
-        System.out.println("Original Customer: " + originalCustomer);
-        System.out.println("Cloned Customer:   " + clonedCustomer);
-        System.out.println("Are references equal? (original == cloned) -> " + (originalCustomer == clonedCustomer));
-        System.out.println("Are addresses shared reference? (original.addr == cloned.addr) -> " 
-                           + (originalCustomer.getAddress() == clonedCustomer.getAddress()));
-
-        // Supplementary: Format and print Statement (Practical 3 version)
-        System.out.println("\nPrinting multi-line Account Statement (Practical 3 getStatement()):");
-        System.out.println(accounts[0].getStatement());
-
-        System.out.println("-----------------------------------------------------------");
-
-        System.out.println("\n--- [PRACTICAL 4 DEMONSTRATION & TEST RUN] ---");
-
-        // 1. Test Validator
-        System.out.println("Testing Mobile Number Validator:");
-        System.out.println(" - 9876543210 (Correct): " + Validator.isValidMobile("9876543210"));
-        System.out.println(" - 5876543210 (Wrong  ): " + Validator.isValidMobile("5876543210"));
-
-        System.out.println("\nTesting Email Validator:");
-        System.out.println(" - daksh@charusat.edu.in (Correct): " + Validator.isValidEmail("daksh@charusat.edu.in"));
-        System.out.println(" - daksh.charusat.edu.in (Wrong  ): " + Validator.isValidEmail("daksh.charusat.edu.in"));
-
-        System.out.println("\nTesting PAN Validator:");
-        System.out.println(" - ABCDE1234F (Correct): " + Validator.isValidPan("ABCDE1234F"));
-        System.out.println(" - ABC1234F   (Wrong  ): " + Validator.isValidPan("ABC1234F"));
-
-        System.out.println("\nTesting IFSC Validator:");
-        System.out.println(" - BARB0GUJARA (Correct): " + Validator.isValidIfsc("BARB0GUJARA"));
-        System.out.println(" - BARB1GUJARA (Wrong  ): " + Validator.isValidIfsc("BARB1GUJARA"));
-
-        System.out.println("\nTesting Positive Amount Validator (Supplementary):");
-        System.out.println(" - 500 (Correct): " + Validator.isValidAmount("500"));
-        System.out.println(" - -50 (Wrong  ): " + Validator.isValidAmount("-50"));
-        System.out.println(" - 0   (Wrong  ): " + Validator.isValidAmount("0"));
-
-        // 2. Test Parser
-        System.out.println("\nTesting Command Parser:");
-        String commandLine = "DEPOSIT AC0001 500";
-        System.out.println("Parsing line: \"" + commandLine + "\"");
-        try {
-            Command cmd = CommandParser.parse(commandLine);
-            System.out.println("Parsed Command Parts:");
-            System.out.println(" - Type: " + cmd.type());
-            System.out.println(" - Account Number: " + cmd.accountNumber());
-            System.out.println(" - Amount: " + cmd.amount());
-        } catch (Exception e) {
-            System.out.println("Error parsing command: " + e.getMessage());
-        }
-
-        System.out.println("\nTesting Command Parser Error Handling (Wrong number of parts):");
-        String wrongCommandLine = "WITHDRAW AC0001";
-        System.out.println("Parsing line: \"" + wrongCommandLine + "\"");
-        try {
-            CommandParser.parse(wrongCommandLine);
-        } catch (IllegalArgumentException e) {
-            System.out.println("Expected Exception Caught: " + e.getMessage());
-        }
-
-        // 3. Test StatementFormatter
-        System.out.println("\nPrinting Statement via StatementFormatter:");
-        System.out.println(StatementFormatter.buildStatement(accounts[0]));
 
         System.out.println("-----------------------------------------------------------\n");
 
@@ -142,14 +108,15 @@ public class MiniBank {
 
         while (keepRunning) {
             System.out.println("\n----------------- INTERACTIVE MENU -----------------");
-            System.out.println("1. Open Account");
+            System.out.println("1. Open Account (Savings / Current / Fixed Deposit)");
             System.out.println("2. Deposit");
             System.out.println("3. Withdraw");
             System.out.println("4. Transfer (Local)");
-            System.out.println("5. Check Bank Working Hours");
-            System.out.println("6. Exit");
-            System.out.println("---------------------------------------------");
-            System.out.print("Please enter your choice (1-6): ");
+            System.out.println("5. View Account Statement");
+            System.out.println("6. Check Bank Working Hours");
+            System.out.println("7. Exit");
+            System.out.println("----------------------------------------------------");
+            System.out.print("Please enter your choice (1-7): ");
 
             int choice = -1;
             if (scanner.hasNextInt()) {
@@ -164,31 +131,68 @@ public class MiniBank {
                 case 2 -> MenuOption.DEPOSIT;
                 case 3 -> MenuOption.WITHDRAW;
                 case 4 -> MenuOption.TRANSFER;
-                case 5 -> MenuOption.WORKING_HOURS;
-                case 6 -> MenuOption.EXIT;
+                case 5 -> MenuOption.VIEW_STATEMENT;
+                case 6 -> MenuOption.WORKING_HOURS;
+                case 7 -> MenuOption.EXIT;
                 default -> null;
             };
 
             if (selectedOption == null) {
-                System.out.println("\n[ERROR] Invalid menu choice. Please select a valid number between 1 and 6.");
+                System.out.println("\n[ERROR] Invalid menu choice. Please select a valid number between 1 and 7.");
                 continue;
             }
 
             switch (selectedOption) {
                 case OPEN_ACCOUNT -> {
+                    if (accountCount >= accounts.length) {
+                        System.out.println("\n[ERROR] Bank database is full.");
+                        break;
+                    }
+                    System.out.println("\nSelect Account Type:");
+                    System.out.println("1. Savings Account (4.0% Interest, Min Balance)");
+                    System.out.println("2. Current Account (0.0% Interest, Overdraft Facility)");
+                    System.out.println("3. Fixed Deposit Account (7.0% Interest, Locked Deposit)");
+                    System.out.print("Choice (1-3): ");
+                    
+                    int accTypeChoice = 1;
+                    if (scanner.hasNextInt()) {
+                        accTypeChoice = scanner.nextInt();
+                        scanner.nextLine();
+                    } else {
+                        scanner.nextLine();
+                    }
+
                     System.out.print("Enter owner's name: ");
                     String name = scanner.nextLine().trim();
                     System.out.print("Enter opening balance (in Rs.): ");
                     long openingBal = scanner.nextLong();
-                    scanner.nextLine(); // Consume newline
+                    scanner.nextLine();
 
-                    if (accountCount < accounts.length) {
-                        accounts[accountCount] = new Account(name, openingBal);
-                        System.out.println("\n[SUCCESS] Account created: " + accounts[accountCount]);
-                        accountCount++;
-                    } else {
-                        System.out.println("\n[ERROR] Bank database full.");
+                    Account newAcc = null;
+                    switch (accTypeChoice) {
+                        case 1 -> {
+                            System.out.print("Enter minimum balance requirement (e.g. 500): ");
+                            long minBal = scanner.nextLong();
+                            scanner.nextLine();
+                            newAcc = new SavingsAccount(name, openingBal, minBal);
+                        }
+                        case 2 -> {
+                            System.out.print("Enter overdraft limit (e.g. 10000): ");
+                            long odLimit = scanner.nextLong();
+                            scanner.nextLine();
+                            newAcc = new CurrentAccount(name, openingBal, odLimit);
+                        }
+                        case 3 -> {
+                            newAcc = new FixedDepositAccount(name, openingBal);
+                        }
+                        default -> {
+                            System.out.println("Invalid type selected. Defaulting to Savings Account.");
+                            newAcc = new SavingsAccount(name, openingBal);
+                        }
                     }
+
+                    accounts[accountCount++] = newAcc;
+                    System.out.println("\n[SUCCESS] Account successfully opened:\n" + newAcc);
                 }
                 case DEPOSIT -> {
                     System.out.print("Enter Account Number (e.g. AC0001): ");
@@ -235,6 +239,16 @@ public class MiniBank {
                         Account.transfer(src, dest, amount);
                     } else {
                         System.out.println("\n[ERROR] One or both account numbers are invalid.");
+                    }
+                }
+                case VIEW_STATEMENT -> {
+                    System.out.print("Enter Account Number (e.g. AC0001): ");
+                    String accNo = scanner.nextLine().trim();
+                    Account acc = findAccount(accounts, accountCount, accNo);
+                    if (acc != null) {
+                        System.out.println("\n" + acc.getStatement());
+                    } else {
+                        System.out.println("\n[ERROR] Account not found!");
                     }
                 }
                 case WORKING_HOURS -> {

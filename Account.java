@@ -1,9 +1,9 @@
 import java.util.Objects;
 
-public class Account {
+public abstract class Account {
     private final String accountNumber;
     private String ownerName;
-    private long balance; // whole rupees
+    private long balance; // whole rupees (can become negative for CurrentAccount within overdraft)
     private boolean active;
 
     private static long accountCounter = 0;
@@ -16,12 +16,24 @@ public class Account {
     public Account(String ownerName, long balance) {
         this.accountNumber = generateAccountNumber();
         this.ownerName = ownerName;
-        this.balance = Math.max(0, balance);
+        this.balance = balance;
         this.active = true;
     }
 
     public Account(String ownerName) {
         this(ownerName, 0);
+    }
+
+    // Abstract methods to be implemented by subclasses
+    public abstract double interestRate();
+    public abstract boolean canWithdraw(long amount);
+
+    // Supplementary: Monthly interest calculation using interestRate() and balance
+    public double monthlyInterest() {
+        if (balance <= 0) {
+            return 0.0;
+        }
+        return (balance * (interestRate() / 100.0)) / 12.0;
     }
 
     public void deposit(long amount) {
@@ -37,12 +49,12 @@ public class Account {
             System.out.println("[ERROR] Withdrawal amount must be positive. Provided: " + amount);
             return false;
         }
-        if (this.balance >= amount) {
+        if (canWithdraw(amount)) {
             this.balance -= amount;
             return true;
         }
-        System.out.println("[ERROR] Insufficient balance for withdrawal. Account: " 
-                           + this.accountNumber + ", Attempted: " + amount + ", Balance: " + this.balance);
+        System.out.println("[ERROR] Withdrawal not allowed or limit exceeded. Account: " 
+                           + this.accountNumber + ", Attempted: " + amount + ", Current Balance: " + this.balance);
         return false;
     }
 
@@ -79,14 +91,12 @@ public class Account {
         }
     }
 
-    // (1) In Account, override the toString() method (showing whether the account is active)
     @Override
     public String toString() {
-        return "Account[No=" + accountNumber + ", Owner=" + ownerName 
-               + ", Balance=Rs. " + balance + ", Active=" + active + "]";
+        return String.format("%s[No=%s, Owner=%s, Balance=Rs. %d, InterestRate=%.1f%%, Active=%b]",
+                getClass().getSimpleName(), accountNumber, ownerName, balance, interestRate(), active);
     }
 
-    // (2) In Account, override equals(Object o) and hashCode() by accountNumber
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -100,14 +110,16 @@ public class Account {
         return Objects.hash(accountNumber);
     }
 
-    // Supplementary: Add a method that returns a formatted, multi-line statement string for an account
     public String getStatement() {
         return "----------------------------------------\n" +
                "           ACCOUNT STATEMENT            \n" +
                "----------------------------------------\n" +
+               "Account Type   : " + getClass().getSimpleName() + "\n" +
                "Account Number : " + accountNumber + "\n" +
                "Owner Name     : " + ownerName + "\n" +
                "Current Balance: Rs. " + balance + "\n" +
+               "Interest Rate  : " + String.format("%.2f%%", interestRate()) + "\n" +
+               "Est. Mo. Interest: Rs. " + String.format("%.2f", monthlyInterest()) + "\n" +
                "Account Status : " + (active ? "ACTIVE" : "INACTIVE") + "\n" +
                "----------------------------------------";
     }
