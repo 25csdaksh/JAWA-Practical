@@ -6,3 +6,8 @@ bin/
 .vscode/
 .idea/
 *.iml
+data/
+logs/
+reports/
+*.dat
+*.ser

@@ -1,4 +1,8 @@
 import exception.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Scanner;
 import model.*;
 import service.*;
@@ -12,6 +16,10 @@ public class MiniBank {
         WITHDRAW,
         TRANSFER,
         VIEW_STATEMENT,
+        SAVE_STATE,
+        LOAD_STATE,
+        APPEND_LOG,
+        GENERATE_REPORT,
         VALIDATE_ACCOUNT,
         THREAD_POOL_BATCH,
         CONCURRENCY_TEST,
@@ -41,7 +49,94 @@ public class MiniBank {
         accounts[accountCount++] = new CurrentAccount("Prof. Sharma", 40000, 15000);
         accounts[accountCount++] = new FixedDepositAccount("Alice Smith", 100000);
 
-        System.out.println("\n--- [PRACTICAL 10 DEMONSTRATION: THREAD POOLS, PRODUCER-CONSUMER & DEADLOCKS] ---");
+        System.out.println("\n--- [PRACTICAL 11 DEMONSTRATION: SERIALIZATION, TRANSIENT FIELDS & NIO REPORT GENERATION] ---");
+
+        // 1. Serialization Round-Trip with StatePersister and Transient Field Validation
+        System.out.println("\n1. Testing Model Persistence (StatePersister.save & load with transient field check):");
+        Path accountsPath = Paths.get("data", "accounts.dat");
+
+        // Set transient session tokens before serialization
+        accounts[0].setSessionToken("SESSION-TOKEN-DAKSH-991");
+        accounts[1].setSessionToken("SESSION-TOKEN-SHARMA-882");
+        accounts[2].setSessionToken("SESSION-TOKEN-ALICE-773");
+
+        System.out.println("   Original Accounts with transient session tokens:");
+        for (int i = 0; i < accountCount; i++) {
+            System.out.println(String.format("   -> %s [SessionToken=%s]", accounts[i], accounts[i].getSessionToken()));
+        }
+
+        try {
+            // Save active accounts slice
+            Account[] savedSlice = new Account[accountCount];
+            System.arraycopy(accounts, 0, savedSlice, 0, accountCount);
+            StatePersister.save(savedSlice, accountsPath);
+            System.out.println("   [SAVED] Successfully serialized " + accountCount + " accounts to " + accountsPath.toAbsolutePath());
+
+            // Reload accounts from file
+            Account[] reloadedAccounts = StatePersister.load(accountsPath);
+            System.out.println("   [LOADED] Successfully deserialized accounts from file into fresh array:");
+            for (Account reloaded : reloadedAccounts) {
+                System.out.println(String.format("   -> %s [SessionToken=%s]",
+                        reloaded, (reloaded.getSessionToken() != null ? reloaded.getSessionToken() : "<NULL - TRANSIENT EXCLUDED>")));
+            }
+
+            // Confirm integrity
+            boolean dataSurvived = (reloadedAccounts.length == accountCount) &&
+                    reloadedAccounts[0].getAccountNumber().equals(accounts[0].getAccountNumber()) &&
+                    reloadedAccounts[0].getBalance() == accounts[0].getBalance() &&
+                    reloadedAccounts[0].getSessionToken() == null;
+            System.out.println("   Persistence Validation: " + (dataSurvived ? "[PASSED - State Restored, Transient Omitted]" : "[FAILED]"));
+        } catch (Exception e) {
+            System.err.println("   State persistence error: " + e.getMessage());
+        }
+
+        // 2. Append-Only Transaction Logging with NIO (TransactionLog.append)
+        System.out.println("\n2. Writing Append-Only Transaction Logs (TransactionLog.append):");
+        Path logsDir = Paths.get("logs");
+        Path branch1Log = logsDir.resolve("branch1_transactions.log");
+        Path branch2Log = logsDir.resolve("branch2_transactions.log");
+        Path emptyLog = logsDir.resolve("empty_branch.log");
+        Path nonLogDoc = logsDir.resolve("audit_readme.txt");
+
+        try {
+            // Clean/ensure logs directory
+            if (!Files.exists(logsDir)) {
+                Files.createDirectories(logsDir);
+            }
+
+            // Write transaction logs
+            TransactionLog.append(branch1Log, "DEPOSIT AC0001 500");
+            TransactionLog.append(branch1Log, "WITHDRAW AC0002 200");
+            TransactionLog.append(branch1Log, "DEPOSIT AC0003 15000");
+
+            TransactionLog.append(branch2Log, "DEPOSIT AC0001 2500");
+            TransactionLog.append(branch2Log, "WITHDRAW AC0001 300");
+            TransactionLog.append(branch2Log, "WITHDRAW AC0003 5000");
+
+            // Create an empty log file and a non-log file to test skipping logic
+            Files.writeString(emptyLog, ""); // Empty file (0 bytes)
+            Files.writeString(nonLogDoc, "This is an audit documentation text file, not a .log transaction file.");
+
+            System.out.println("   Appended transactions to: " + branch1Log.getFileName() + " and " + branch2Log.getFileName());
+            System.out.println("   Created edge-case test files: " + emptyLog.getFileName() + " (empty) and " + nonLogDoc.getFileName() + " (non-.log)");
+        } catch (IOException e) {
+            System.err.println("   Transaction logging error: " + e.getMessage());
+        }
+
+        // 3. NIO DirectoryStream Log Walk & End-of-Day Report Generation (ReportGenerator)
+        System.out.println("\n3. Generating End-of-Day Financial Reconciliation Audit Report (ReportGenerator):");
+        Path reportPath = Paths.get("reports", "daily_reconciliation_report.txt");
+        try {
+            String reportOutput = ReportGenerator.generateReport(logsDir, reportPath);
+            System.out.println(reportOutput);
+            System.out.println("   [REPORT SAVED] Report written to: " + reportPath.toAbsolutePath());
+        } catch (IOException e) {
+            System.err.println("   Report generation error: " + e.getMessage());
+        }
+
+        System.out.println("--------------------------------------------------------------------------------------\n");
+
+        System.out.println("--- [PRACTICAL 10 DEMONSTRATION: THREAD POOLS, PRODUCER-CONSUMER & DEADLOCKS] ---");
 
         // 1. Managed Thread Pool Batch Processing (TransactionProcessor)
         System.out.println("\n1. Testing Managed Thread Pool (TransactionProcessor with 4 Threads):");
@@ -187,14 +282,18 @@ public class MiniBank {
             System.out.println("3. Withdraw");
             System.out.println("4. Transfer (Safe Deadlock-Free)");
             System.out.println("5. View Official Account Statement");
-            System.out.println("6. Validate Account Metadata via Reflection");
-            System.out.println("7. Run Thread Pool Batch Processing Benchmark (Practical 10)");
-            System.out.println("8. Run Concurrency & Race Condition Benchmark (Practical 9)");
-            System.out.println("9. Verify Customer Credentials (Static Import Validator)");
-            System.out.println("10. Check Bank Working Hours");
-            System.out.println("11. Exit");
+            System.out.println("6. Save Accounts to Disk (StatePersister.save)");
+            System.out.println("7. Reload Accounts from Disk (StatePersister.load)");
+            System.out.println("8. Append Transaction Log (TransactionLog.append)");
+            System.out.println("9. Generate End-of-Day Audit Report (ReportGenerator)");
+            System.out.println("10. Validate Account Metadata via Reflection");
+            System.out.println("11. Run Thread Pool Batch Processing Benchmark (Practical 10)");
+            System.out.println("12. Run Concurrency & Race Condition Benchmark (Practical 9)");
+            System.out.println("13. Verify Customer Credentials (Static Import Validator)");
+            System.out.println("14. Check Bank Working Hours");
+            System.out.println("15. Exit");
             System.out.println("-------------------------------------------------------------");
-            System.out.print("Please enter your choice (1-11): ");
+            System.out.print("Please enter your choice (1-15): ");
 
             int choice = -1;
             if (scanner.hasNextInt()) {
@@ -210,17 +309,21 @@ public class MiniBank {
                 case 3 -> MenuOption.WITHDRAW;
                 case 4 -> MenuOption.TRANSFER;
                 case 5 -> MenuOption.VIEW_STATEMENT;
-                case 6 -> MenuOption.VALIDATE_ACCOUNT;
-                case 7 -> MenuOption.THREAD_POOL_BATCH;
-                case 8 -> MenuOption.CONCURRENCY_TEST;
-                case 9 -> MenuOption.VERIFY_CREDENTIALS;
-                case 10 -> MenuOption.WORKING_HOURS;
-                case 11 -> MenuOption.EXIT;
+                case 6 -> MenuOption.SAVE_STATE;
+                case 7 -> MenuOption.LOAD_STATE;
+                case 8 -> MenuOption.APPEND_LOG;
+                case 9 -> MenuOption.GENERATE_REPORT;
+                case 10 -> MenuOption.VALIDATE_ACCOUNT;
+                case 11 -> MenuOption.THREAD_POOL_BATCH;
+                case 12 -> MenuOption.CONCURRENCY_TEST;
+                case 13 -> MenuOption.VERIFY_CREDENTIALS;
+                case 14 -> MenuOption.WORKING_HOURS;
+                case 15 -> MenuOption.EXIT;
                 default -> null;
             };
 
             if (selectedOption == null) {
-                System.out.println("\n[ERROR] Invalid menu choice. Please select a valid number between 1 and 11.");
+                System.out.println("\n[ERROR] Invalid menu choice. Please select a valid number between 1 and 15.");
                 continue;
             }
 
@@ -350,6 +453,65 @@ public class MiniBank {
                         System.out.println(String.format("5-Year Compound Projection: Rs. %.2f", acc.projectedBalance(5)));
                     } catch (AccountNotFoundException e) {
                         System.out.println("\n[ERROR] " + e.getMessage());
+                    }
+                }
+                case SAVE_STATE -> {
+                    System.out.print("Enter destination file path [default: data/accounts.dat]: ");
+                    String pathInput = scanner.nextLine().trim();
+                    Path savePath = pathInput.isEmpty() ? Paths.get("data", "accounts.dat") : Paths.get(pathInput);
+                    try {
+                        Account[] toSave = new Account[accountCount];
+                        System.arraycopy(accounts, 0, toSave, 0, accountCount);
+                        StatePersister.save(toSave, savePath);
+                        System.out.println("\n[SUCCESS] Successfully saved " + accountCount + " accounts to " + savePath.toAbsolutePath());
+                    } catch (IOException e) {
+                        System.out.println("\n[SAVE ERROR] Failed to serialize accounts: " + e.getMessage());
+                    }
+                }
+                case LOAD_STATE -> {
+                    System.out.print("Enter source file path [default: data/accounts.dat]: ");
+                    String pathInput = scanner.nextLine().trim();
+                    Path loadPath = pathInput.isEmpty() ? Paths.get("data", "accounts.dat") : Paths.get(pathInput);
+                    try {
+                        Account[] loaded = StatePersister.load(loadPath);
+                        System.arraycopy(loaded, 0, accounts, 0, loaded.length);
+                        accountCount = loaded.length;
+                        System.out.println("\n[SUCCESS] Successfully reloaded " + loaded.length + " accounts from " + loadPath.toAbsolutePath() + ":");
+                        for (int i = 0; i < accountCount; i++) {
+                            System.out.println(" -> " + accounts[i]);
+                        }
+                    } catch (Exception e) {
+                        System.out.println("\n[LOAD ERROR] Failed to deserialize accounts: " + e.getMessage());
+                    }
+                }
+                case APPEND_LOG -> {
+                    System.out.print("Enter log file path [default: logs/branch1_transactions.log]: ");
+                    String pathInput = scanner.nextLine().trim();
+                    Path logPath = pathInput.isEmpty() ? Paths.get("logs", "branch1_transactions.log") : Paths.get(pathInput);
+                    System.out.print("Enter transaction entry (e.g. DEPOSIT AC0001 500): ");
+                    String entry = scanner.nextLine().trim();
+                    try {
+                        TransactionLog.append(logPath, entry);
+                        System.out.println("[SUCCESS] Appended log entry to " + logPath.toAbsolutePath());
+                    } catch (IOException e) {
+                        System.out.println("\n[LOGGING ERROR] Failed to append entry: " + e.getMessage());
+                    }
+                }
+                case GENERATE_REPORT -> {
+                    System.out.print("Enter logs directory [default: logs]: ");
+                    String logsInput = scanner.nextLine().trim();
+                    Path targetLogsDir = logsInput.isEmpty() ? Paths.get("logs") : Paths.get(logsInput);
+
+                    System.out.print("Enter output report file [default: reports/daily_reconciliation_report.txt]: ");
+                    String repInput = scanner.nextLine().trim();
+                    Path repPath = repInput.isEmpty() ? Paths.get("reports", "daily_reconciliation_report.txt") : Paths.get(repInput);
+
+                    try {
+                        String reportText = ReportGenerator.generateReport(targetLogsDir, repPath);
+                        System.out.println("\n" + reportText);
+                        System.out.println("[SUCCESS] Report saved to " + repPath.toAbsolutePath());
+                    } catch (IOException e) {
+                        System.out.println("\n[REPORT ERROR] Failed to generate report: " + e.getMessage());
                     }
                 }
                 case VALIDATE_ACCOUNT -> {

@@ -3,6 +3,7 @@ package model;
 import exception.BankException;
 import exception.InsufficientFundsException;
 import exception.InvalidAmountException;
+import java.io.Serializable;
 import java.util.Objects;
 import model.annotation.Id;
 import model.annotation.MaxLength;
@@ -10,7 +11,9 @@ import model.annotation.Positive;
 import service.InterestBearing;
 import service.Transactable;
 
-public abstract class Account implements Transactable, InterestBearing {
+public abstract class Account implements Transactable, InterestBearing, Serializable {
+    private static final long serialVersionUID = 1L;
+
     @Id
     @MaxLength(value = 10, message = "Account number length cannot exceed 10 characters")
     private final String accountNumber;
@@ -22,6 +25,9 @@ public abstract class Account implements Transactable, InterestBearing {
     private long balance; // whole rupees
 
     private boolean active;
+
+    // Transient field: Demonstrates state that is excluded from serialization
+    private transient String sessionToken;
 
     private static long accountCounter = 0;
 
@@ -137,6 +143,9 @@ public abstract class Account implements Transactable, InterestBearing {
     @Override
     public synchronized long getBalance() { return balance; }
     public boolean isActive() { return active; }
+
+    public String getSessionToken() { return sessionToken; }
+    public void setSessionToken(String sessionToken) { this.sessionToken = sessionToken; }
 
     public void setOwnerName(String ownerName) {
         this.ownerName = ownerName;

@@ -5,6 +5,8 @@ import exception.InsufficientFundsException;
 import exception.InvalidAmountException;
 
 public class CurrentAccount extends Account {
+    private static final long serialVersionUID = 1L;
+
     private final long overdraftLimit;
 
     public CurrentAccount(String ownerName, long balance, long overdraftLimit) {

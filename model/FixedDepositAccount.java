@@ -7,6 +7,8 @@ import java.time.LocalDate;
 import service.Premium;
 
 public class FixedDepositAccount extends Account implements Premium {
+    private static final long serialVersionUID = 1L;
+
     private final LocalDate maturityDate;
     private boolean matured;
 

@@ -244,7 +244,63 @@ java -jar minibank.jar
 
 ---
 
+### 💡 Practical 11 Questions
+
+#### 1. What does it mean for a class to be Serializable, and why add serialVersionUID?
+* **Serializable Interface:** `java.io.Serializable` is a marker interface (containing no methods) that grants JVM permission to flatten the object's instance state into a sequence of binary bytes via `ObjectOutputStream`, and reconstruct it back into memory via `ObjectInputStream`.
+* **Purpose of `serialVersionUID`:** It is a unique version identifier for each `Serializable` class. During deserialization, the JVM compares the `serialVersionUID` encoded in the byte stream with the `serialVersionUID` of the current class.
+  - If they match, deserialization succeeds.
+  - If they differ (or if a class modification alters the auto-generated hash), the JVM throws `java.io.InvalidClassException`.
+  - Explicitly declaring `private static final long serialVersionUID = 1L;` guarantees version compatibility across different JVM vendors, compiler versions, or minor class modifications.
+
+#### 2. What is the difference between a byte stream and a character stream?
+* **Byte Streams (`InputStream` / `OutputStream`):**
+  - Read/write raw 8-bit binary bytes directly without character set translation.
+  - Ideal for binary data such as serialized objects (`ObjectInputStream`/`ObjectOutputStream`), images, audio, video, and PDF documents.
+* **Character Streams (`Reader` / `Writer`):**
+  - Read/write 16-bit Unicode characters (`char`), automatically handling encoding/decoding between bytes and text based on character sets like `UTF-8` or `UTF-16` (e.g. `BufferedReader`, `BufferedWriter`, `FileReader`).
+  - Ideal for textual content, configuration files, and log files.
+
+#### 3. How does NIO’s Path/Files API differ from the old File class, and how is a directory stream iterated?
+* **NIO (`Path` / `Files`) vs Legacy (`java.io.File`):**
+  - `java.io.File` combines path representation and file operations into one class, frequently fails silently (returns `false` instead of throwing descriptive `IOException`s), and performs poorly on large directories (`listFiles()` loads all filenames into memory at once).
+  - NIO `Path` represents a location in the file system, while static utility `Files` performs rich operations throwing explicit exceptions (`NoSuchFileException`, `AccessDeniedException`). It supports symbolic links, POSIX permissions, and atomic operations.
+* **DirectoryStream Iteration:**
+  - `Files.newDirectoryStream(Path dir)` or `Files.newDirectoryStream(Path dir, String glob)` returns an `AutoCloseable` `DirectoryStream<Path>`.
+  - It lazily streams directory entries on-demand rather than buffering all entries into memory, providing exceptional scalability when scanning directories containing thousands of files. It is traversed using standard enhanced `for (Path entry : stream)` loops inside try-with-resources.
+
+---
+
 ## 🛠️ Implemented Features & Supplementary Solutions
+
+### Practical 11
+* **Part A1 — Save/Load Object Serialization (`lab-11/saveload`):**
+  - `UserProfile` model implementing `Serializable` with `serialVersionUID = 1L` and `private transient String sessionToken`.
+  - `SaveLoadDemo`: Saves an array of `UserProfile[]` using `ObjectOutputStream`, deserializes it with `ObjectInputStream`, and proves that core state survives while the `transient` field is reset to `null`.
+* **Part A2 — Log Analyzer (`lab-11/loganalyzer`):**
+  - `LogAnalyzerDemo`: Reads multiple log files line-by-line using `Path` and `Files.newBufferedReader`.
+  - Retrieves exact file sizes and modification timestamps using `Files.readAttributes(path, BasicFileAttributes.class)`.
+  - Aggregates total scanned lines and keyword occurrences (`ERROR`) across all files.
+* **Part A3 — Directory Tree Walker (`lab-11/treewalker`):**
+  - `TreeWalkerDemo`: Recursively traverses directory hierarchies using `Files.walkFileTree` and `SimpleFileVisitor`.
+  - Generates a structured audit report table with relative paths, sizes, timestamps, and node types, writing the summary to an output file.
+* **Part B — MiniBank Persistence & Financial Reconciliation Engine:**
+  - `model.Account`, `model.SavingsAccount`, `model.CurrentAccount`, `model.FixedDepositAccount`, and `model.Customer` implement `Serializable` with explicit `serialVersionUID`.
+  - Added `transient String sessionToken` to demonstrate transient field exclusion during bank state saving.
+  - `util.StatePersister`:
+    - `save(Account[] accounts, Path file)` using `ObjectOutputStream` inside try-with-resources.
+    - `load(Path file)` using `ObjectInputStream` inside try-with-resources.
+  - `util.TransactionLog`:
+    - `append(Path file, String line)` using `Files.write` with `StandardOpenOption.CREATE` and `StandardOpenOption.APPEND`.
+  - `util.ReportGenerator`:
+    - Walks the `logs/` directory using `Files.newDirectoryStream`.
+    - **Supplementary Rule 1:** Skips files that do not end with `.log`.
+    - **Supplementary Rule 2:** Skips empty files (`size == 0`).
+    - Sums total deposits, total withdrawals, and calculates net financial balance change.
+    - Inspects file attributes (`BasicFileAttributes`) and writes formatted end-of-day reports to disk.
+  - `MiniBank.java` Integration:
+    - Pre-flight automated verification of state persistence and report generation.
+    - Interactive menu options 6-9 for live persistence, loading, logging, and audit reporting.
 
 ### Practical 10
 * **Part A1 — Thread-Pool Runner (`threadpool` package):**
