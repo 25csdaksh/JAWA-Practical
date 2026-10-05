@@ -1,6 +1,6 @@
 # OOP Lab Practical Portfolio — Semester Work
 
-This repository contains the complete Java solutions for **Practical 1** through **Practical 7**, organized into practice programs and the modular semester-long **MiniBank** project.
+This repository contains the complete Java solutions for **Practical 1** through **Practical 8**, organized into practice programs and the modular, fault-tolerant **MiniBank** project (Milestone 1).
 
 ---
 
@@ -15,46 +15,50 @@ A.lab practical/
 ├── lab-05/                  (Practical 5 — Practice Programs)
 ├── lab-06/                  (Practical 6 — Practice Programs)
 ├── lab-07/                  (Practical 7 — Practice Programs)
-│   ├── form/                (Part A1: Custom Annotations & Reflection Form Validator)
-│   │   ├── NotBlank.java
-│   │   ├── MaxLength.java
-│   │   ├── SignupForm.java
-│   │   ├── FormValidator.java
-│   │   └── FormDriver.java
-│   ├── testrunner/          (Part A2: Method-Level @Run Annotation & Mini JUnit Runner)
-│   │   ├── Run.java
-│   │   ├── TestSuite.java
-│   │   ├── MiniTestRunner.java
-│   │   └── TestRunnerDriver.java
-│   └── csv/                 (Part A3: @Column Mapping & CSV Reflection Mapper)
-│       ├── Column.java
-│       ├── EmployeeRecord.java
-│       ├── CsvMapper.java
-│       └── CsvDriver.java
+├── lab-08/                  (Practical 8 — Practice Programs)
+│   ├── calculator/          (Part A1: Guarded Calculator with DivideByZeroException & try-finally)
+│   │   ├── DivideByZeroException.java
+│   │   ├── Calculator.java
+│   │   └── CalculatorDriver.java
+│   ├── warehouse/           (Part A2: Inventory System with OutOfStockException & Shortfall)
+│   │   ├── OutOfStockException.java
+│   │   ├── InvalidQuantityException.java
+│   │   ├── Warehouse.java
+│   │   └── WarehouseDriver.java
+│   └── resource/            (Part A3: AutoCloseable Resource & Try-With-Resources)
+│       ├── DatabaseConnection.java
+│       └── ResourceDriver.java
+├── exception/               (Practical 8 — Custom Checked Exception Hierarchy)
+│   ├── BankException.java   (Base checked exception extending Exception)
+│   ├── InsufficientFundsException.java (Carries shortfall field & getter)
+│   ├── AccountNotFoundException.java (Thrown when account query fails)
+│   ├── InvalidAmountException.java (Thrown for non-positive transaction amounts)
+│   └── DailyLimitExceededException.java (Supplementary: Daily withdrawal cap violation)
 ├── model/                   (Domain Entities)
 │   ├── annotation/          (Practical 7 — Metadata Annotations)
-│   │   ├── Id.java          (@Target(FIELD), @Retention(RUNTIME) marker)
-│   │   ├── Positive.java    (@Positive with message "must be > 0")
-│   │   └── MaxLength.java   (@MaxLength with int value and message)
-│   ├── Account.java         (Annotated with @Id, @Positive, @MaxLength)
-│   ├── SavingsAccount.java  (Extends Account, Implements Premium)
-│   ├── CurrentAccount.java  (Extends Account)
-│   ├── FixedDepositAccount.java (Extends Account, Implements Premium)
+│   │   ├── Id.java
+│   │   ├── Positive.java
+│   │   └── MaxLength.java
+│   ├── Account.java         (Fault-tolerant withdraw/deposit/transfer with throws)
+│   ├── SavingsAccount.java  (Extends Account with minBalance shortfall calculations)
+│   ├── CurrentAccount.java  (Extends Account with overdraft shortfall calculations)
+│   ├── FixedDepositAccount.java (Extends Account with lock-in exception handling)
 │   ├── Customer.java        (Customer Record with Address & Cloneable)
 │   ├── BankInfo.java        (Record for Bank Branch Details)
 │   ├── TransactionType.java (Enum for Transaction Types)
 │   └── Command.java         (Record for Banking Commands)
 ├── service/                 (Core Capabilities & Rules)
-│   ├── Transactable.java    (deposit & withdraw contract)
+│   ├── Transactable.java    (deposit/withdraw contracts declaring exceptions)
 │   ├── InterestBearing.java (interestRate + default yearlyInterest & projectedBalance)
 │   ├── WithdrawRule.java    (@FunctionalInterface for withdrawal validation)
-│   └── Premium.java         (Marker Interface for VIP Accounts)
+│   ├── Premium.java         (Marker Interface for VIP Accounts)
+│   └── BankingSession.java  (Practical 8 — AutoCloseable transactional session)
 ├── util/                    (Utilities & Reflection Helpers)
-│   ├── AnnotationValidator.java (Practical 7 — Reflection-based Validator)
+│   ├── AnnotationValidator.java (Reflection-based Validator)
 │   ├── Validator.java       (Regex Verification Methods)
 │   ├── StatementFormatter.java (Account Statement Builder)
 │   └── CommandParser.java   (Command Line Parser)
-├── MiniBank.java            (Main Banking Shell & Test Driver)
+├── MiniBank.java            (Milestone 1 Main Application with Structured Exception Handling)
 ├── MANIFEST.MF              (JAR Manifest specifying Main-Class: MiniBank)
 ├── minibank.jar             (Packaged Runnable JAR Artifact)
 ├── .gitignore
@@ -69,7 +73,7 @@ Make sure you have JDK 17 or higher installed on your system. Run all commands f
 
 ### 1. Compiling MiniBank & All Packages into `bin/`
 ```powershell
-javac -d bin model/annotation/*.java service/*.java model/*.java util/*.java MiniBank.java lab-07/form/*.java lab-07/testrunner/*.java lab-07/csv/*.java
+javac -d bin exception/*.java model/annotation/*.java service/*.java model/*.java util/*.java MiniBank.java lab-08/calculator/*.java lab-08/warehouse/*.java lab-08/resource/*.java
 ```
 
 ### 2. Building the Runnable JAR (`minibank.jar`)
@@ -77,21 +81,21 @@ javac -d bin model/annotation/*.java service/*.java model/*.java util/*.java Min
 jar cfm minibank.jar MANIFEST.MF -C bin .
 ```
 
-### 3. Running Practical 7 Practice Programs
-* **Form Validator (Field Annotations & Reflection):**
+### 3. Running Practical 8 Practice Programs
+* **Guarded Calculator (DivideByZeroException & Looped Recovery):**
   ```powershell
-  java -cp bin form.FormDriver
+  java -cp bin calculator.CalculatorDriver
   ```
-* **Mini Test Runner (Method @Run Reflection Execution):**
+* **Warehouse Stock (OutOfStockException with Shortfall):**
   ```powershell
-  java -cp bin testrunner.TestRunnerDriver
+  java -cp bin warehouse.WarehouseDriver
   ```
-* **CSV Column Mapper (Dynamic Header Matching):**
+* **AutoCloseable Resource (Try-With-Resources Execution):**
   ```powershell
-  java -cp bin csv.CsvDriver
+  java -cp bin resource.ResourceDriver
   ```
 
-### 4. Running the MiniBank Runnable JAR
+### 4. Running the MiniBank Runnable JAR (Milestone 1)
 ```powershell
 java -jar minibank.jar
 ```
@@ -152,7 +156,7 @@ java -jar minibank.jar
 * Matches a 10-digit Indian phone number. Anchors (`^` and `$`) ensure the full string conforms without extraneous characters.
 
 #### 3. Why should input be validated at the boundary before it is used?
-* Enables fail-fast behavior, protects internal domain integrity, and prevents injection attacks.
+* Enables fail-fast error detection, protects internal domain integrity, and prevents injection attacks.
 
 ---
 
@@ -185,47 +189,60 @@ java -jar minibank.jar
 ### 💡 Practical 7 Questions
 
 #### 1. What are the meta-annotations @Retention and @Target used for?
-* **`@Retention`:** Defines the **lifecycle / retention policy** of an annotation (how long it is preserved):
-  - `RetentionPolicy.SOURCE`: Discarded during compilation (e.g. `@Override`, `@SuppressWarnings`).
-  - `RetentionPolicy.CLASS`: Recorded in the `.class` file by the compiler but discarded by the JVM at run time.
-  - `RetentionPolicy.RUNTIME`: Retained in the bytecode and loaded into JVM memory, making it accessible via Java Reflection at run time (essential for validation frameworks like `@Positive` and `@MaxLength`).
-* **`@Target`:** Restricts the **Java elements** where the annotation can be applied (e.g. `ElementType.FIELD`, `ElementType.METHOD`, `ElementType.TYPE`, `ElementType.PARAMETER`).
+* **`@Retention`:** Configures the **lifespan** of an annotation (`SOURCE`, `CLASS`, or `RUNTIME` for reflection access).
+* **`@Target`:** Defines the **syntactic elements** (`FIELD`, `METHOD`, `TYPE`, `PARAMETER`) to which the annotation applies.
 
 #### 2. What is reflection, and what does getDeclaredFields() return?
-* **Reflection:** A feature of the Java language that allows inspecting, querying, and modifying the internal metadata and state of classes, interfaces, fields, methods, and constructors dynamically at run time without knowing their names at compile time.
-* **`getDeclaredFields()`:** Returns an array of `Field` objects reflecting all the fields declared directly by the class, including `public`, `protected`, `default` (package), and `private` fields (excluding inherited fields). Private fields can be read using `field.setAccessible(true)` followed by `field.get(obj)`.
+* **Reflection:** Runtime introspection and invocation API.
+* **`getDeclaredFields()`:** Returns all declared fields of a class (including private fields).
 
 #### 3. How do annotations plus reflection let a framework validate any object?
-* **Decoupling:** Annotations declare validation metadata directly on domain model fields without embedding validation logic into the domain class.
-* **Generic Processing:** A generic validator (like `AnnotationValidator`) accepts `Object obj`, iterates through its fields using reflection, inspects active annotations (e.g., `field.isAnnotationPresent(Positive.class)`), retrieves the current field value via `field.get(obj)`, tests the rule constraint, and aggregates errors dynamically. This enables universal validation across arbitrary classes.
+* Decouples declarative metadata constraints from execution logic, allowing a generic reflection validator to dynamically inspect field annotations and validate arbitrary object graphs.
+
+---
+
+### 💡 Practical 8 Questions
+
+#### 1. What is the difference between a checked and an unchecked exception?
+* **Checked Exceptions:** Subclasses of `java.lang.Exception` (excluding `RuntimeException`). The compiler forces the programmer to handle them using a `try-catch` block or declare them in the method signature using the `throws` keyword (e.g. `BankException`, `InsufficientFundsException`, `IOException`). Used for recoverable conditions that well-written applications must anticipate.
+* **Unchecked Exceptions:** Subclasses of `java.lang.RuntimeException` and `java.lang.Error`. The compiler does not enforce explicit handling or declarations (e.g. `NullPointerException`, `ArithmeticException`, `IllegalArgumentException`). Used for programming bugs or unrecoverable environmental failures.
+
+#### 2. What is the purpose of the finally block, and when does it run?
+* **Purpose:** To execute essential cleanup code (such as releasing database connections, closing files, flushing audit logs, or completing transaction auditing) regardless of whether the try block completes normally or throws an exception.
+* **When It Runs:** The `finally` block **always** executes after the `try` block and any matching `catch` blocks finish, even if a `return`, `break`, `continue`, or unhandled exception occurs inside the `try` or `catch` block (the only exception being an explicit JVM termination via `System.exit()`).
+
+#### 3. How does try-with-resources guarantee a resource is closed?
+* **Mechanism:** Any object whose class implements `java.lang.AutoCloseable` or `java.io.Closeable` can be instantiated inside the parentheses of a `try (...)` statement.
+* **Guarantee:** The Java compiler automatically generates synthetic bytecode that invokes `resource.close()` when exiting the try block (either on success or due to an exception). If an exception occurs inside the try block and `close()` also throws an exception, the original exception is preserved and thrown, while the exception from `close()` is attached as a *suppressed exception* (`getSuppressed()`).
 
 ---
 
 ## 🛠️ Implemented Features & Supplementary Solutions
 
-### Practical 7
-* **Part A1 — Form Validator (`form` package):**
-  - Custom runtime annotations `@NotBlank` and `@MaxLength(int value)`.
-  - Annotated `SignupForm` model.
-  - `FormValidator` inspects fields via reflection and reports formatted constraint violations.
-* **Part A2 — Mini Test Runner (`testrunner` package):**
-  - Method-level annotation `@Run(description)`.
-  - `MiniTestRunner` inspects classes dynamically, invokes only `@Run` annotated test methods, tracks passed/failed tests, and prints a test summary.
-* **Part A3 — CSV Column Mapper (`csv` package):**
-  - `@Column(name, required)` annotation.
-  - `CsvMapper` dynamically matches CSV header strings to object fields, handles type conversions, and provides graceful fallback for missing columns.
-* **Part B — MiniBank Metadata & Reflection Validator:**
-  - Standard annotations: `@Override` on all overridden methods; `@FunctionalInterface` on `WithdrawRule`.
-  - `model.annotation` package:
-    - `@Id`: Marker annotation for entity identifiers (`accountNumber`).
-    - `@Positive`: Enforces numeric values $> 0$ with custom message.
-    - `@MaxLength`: Enforces string character length caps.
-  - `util.AnnotationValidator`:
-    - Generic reflection method `public static String[] validate(Object obj)` evaluating `@Positive` and `@MaxLength` across class hierarchies.
-    - **Supplementary Problem 1:** Added `@MaxLength(25)` constraint on `ownerName` in `Account` and validated behavior.
-    - **Supplementary Problem 2:** Error messages explicitly report the field name and problematic value (e.g., `Field 'balance' with value -100: must be > 0`).
-  - `MiniBank.java` test suite:
-    - Asserts that a valid account produces 0 errors.
-    - Asserts that an account with `balance = -100` produces the `@Positive` error message.
-    - Asserts that an oversized owner name produces the `@MaxLength` error message.
-    - Added interactive menu option 6 to validate any live account metadata dynamically.
+### Practical 8
+* **Part A1 — Guarded Calculator (`calculator` package):**
+  - Custom checked exception `DivideByZeroException`.
+  - Looped input retry mechanism catching `NumberFormatException`, `DivideByZeroException`, and `IllegalArgumentException` independently.
+  - Mandatory `finally` block recording an audit timestamp for every attempt.
+* **Part A2 — Warehouse Inventory (`warehouse` package):**
+  - Custom checked exception `OutOfStockException` holding shortfall count (`getShortfall()`).
+  - Custom checked exception `InvalidQuantityException`.
+  - Batch request processing with fault tolerance (continuous execution upon individual failures).
+* **Part A3 — AutoCloseable Resource (`resource` package):**
+  - `DatabaseConnection` implementing `AutoCloseable`.
+  - Verified that `close()` is invoked automatically both on success and when an unexpected error occurs within the block.
+* **Part B — MiniBank Fault-Tolerant Exception Hierarchy (Milestone 1):**
+  - `exception` package:
+    - `BankException`: Base checked exception.
+    - `InsufficientFundsException`: Stores `shortfall` amount with `getShortfall()`.
+    - `AccountNotFoundException`: Thrown when querying nonexistent account numbers.
+    - `InvalidAmountException`: Thrown when transaction amounts are $\le 0$.
+    - **Supplementary Problem 1:** `DailyLimitExceededException` thrown when withdrawal exceeds daily cap.
+  - Domain Model & Service Updates:
+    - `Transactable` declares `throws InvalidAmountException, InsufficientFundsException, BankException`.
+    - `Account.deposit()` throws `InvalidAmountException` for negative or zero amounts.
+    - `Account.withdraw()` computes explicit shortfall amounts and throws `InsufficientFundsException`.
+    - `Account.transfer()` wraps operations in `try-catch-finally`, executes rollback on destination failures, and re-throws `BankException`.
+  - `service.BankingSession`: AutoCloseable session for transactional audit logging.
+  - Interactive Shell:
+    - All banking menu operations (Deposit, Withdraw, Transfer, Statement, Validate) run inside structured `try-catch` blocks, providing clear user feedback without application crashes.

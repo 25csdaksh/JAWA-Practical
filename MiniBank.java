@@ -1,3 +1,4 @@
+import exception.*;
 import java.util.Scanner;
 import model.*;
 import service.*;
@@ -17,13 +18,13 @@ public class MiniBank {
         EXIT
     }
 
-    private static Account findAccount(Account[] accounts, int count, String accNo) {
+    private static Account findAccount(Account[] accounts, int count, String accNo) throws AccountNotFoundException {
         for (int i = 0; i < count; i++) {
             if (accounts[i].getAccountNumber().equalsIgnoreCase(accNo.trim())) {
                 return accounts[i];
             }
         }
-        return null;
+        throw new AccountNotFoundException("Account '" + accNo + "' was not found in bank database.");
     }
 
     public static void main(String[] args) {
@@ -33,54 +34,78 @@ public class MiniBank {
         Account[] accounts = new Account[100];
         int accountCount = 0;
 
-        // Pre-load accounts (Demonstrating model package & Premium marker interface)
+        // Pre-load accounts
         accounts[accountCount++] = new SavingsAccount("Daksh Soni", 25000, 1000);
         accounts[accountCount++] = new CurrentAccount("Prof. Sharma", 40000, 15000);
         accounts[accountCount++] = new FixedDepositAccount("Alice Smith", 100000);
 
-        System.out.println("\n--- [PRACTICAL 7 DEMONSTRATION: ANNOTATIONS & REFLECTION VALIDATOR] ---");
+        System.out.println("\n--- [PRACTICAL 8 DEMONSTRATION: CUSTOM EXCEPTIONS & FAULT TOLERANCE] ---");
 
-        // 1. Valid Account Validation Test
-        System.out.println("\n1. Testing AnnotationValidator on a Valid Account (AC0001):");
-        String[] validErrors = AnnotationValidator.validate(accounts[0]);
-        if (validErrors.length == 0) {
-            System.out.println("   [SUCCESS] Account AC0001 is completely valid! (0 metadata errors found)");
-        } else {
-            System.out.println("   [FAIL] Unexpected validation errors: " + java.util.Arrays.toString(validErrors));
+        // 1. Mandatory Milestone Test: Account with balance 1000, withdraw(5000) throws InsufficientFundsException (shortfall = 4000)
+        System.out.println("\n1. Mandatory Test: Withdrawing Rs. 5,000 from an Account with Balance Rs. 1,000:");
+        Account milestoneAccount = new SavingsAccount("Test Account", 1000, 0);
+        System.out.println("   Initial State: " + milestoneAccount);
+        try {
+            System.out.println("   Executing: milestoneAccount.withdraw(5000)...");
+            milestoneAccount.withdraw(5000);
+        } catch (InsufficientFundsException e) {
+            System.out.println("   [EXPECTED EXCEPTION CAUGHT] " + e.getMessage());
+            System.out.println("   -> Shortfall Amount Stored in Exception: Rs. " + e.getShortfall());
+        } catch (BankException e) {
+            System.out.println("   [BANK ERROR] " + e.getMessage());
+        } finally {
+            System.out.println("   [FINALLY BLOCK] Balance after attempt: Rs. " + milestoneAccount.getBalance() + " (Unchanged)");
         }
 
-        // 2. Invalid Account Validation Test (Negative Balance: -100)
-        System.out.println("\n2. Testing AnnotationValidator on an Invalid Account with Negative Balance (-100):");
-        Account invalidNegativeAccount = new SavingsAccount("Invalid Account User", -100, 500);
-        String[] negativeErrors = AnnotationValidator.validate(invalidNegativeAccount);
-        System.out.println("   Validation Result for Invalid Account (" + negativeErrors.length + " errors detected):");
-        for (String err : negativeErrors) {
-            System.out.println("    -> " + err);
+        // 2. Deposit Test with Negative Amount -> InvalidAmountException
+        System.out.println("\n2. Testing Deposit with Negative Amount (-500):");
+        try {
+            System.out.println("   Executing: accounts[0].deposit(-500)...");
+            accounts[0].deposit(-500);
+        } catch (InvalidAmountException e) {
+            System.out.println("   [EXPECTED EXCEPTION CAUGHT] InvalidAmountException: " + e.getMessage());
+        } finally {
+            System.out.println("   [FINALLY BLOCK] Account AC0001 balance remains: Rs. " + accounts[0].getBalance());
         }
 
-        // 3. Supplementary Test: @MaxLength constraint violation
-        System.out.println("\n3. Testing Supplementary @MaxLength Annotation Violation (Owner name > 25 chars):");
-        Account longNameAccount = new CurrentAccount("Dr. Dakshina Murthy Soni The Third of Charusat", 5000, 2000);
-        String[] maxLengthErrors = AnnotationValidator.validate(longNameAccount);
-        System.out.println("   Validation Result for Long Name Account (" + maxLengthErrors.length + " errors detected):");
-        for (String err : maxLengthErrors) {
-            System.out.println("    -> " + err);
+        // 3. Transfer Test: try-catch-finally with Re-throwing BankException
+        System.out.println("\n3. Testing Transfer Method (Success followed by Excessive Transfer):");
+        try {
+            // Valid transfer
+            accounts[0].transfer(accounts[1], 5000);
+            // Excessive transfer exceeding balance
+            System.out.println("\n   Attempting Excessive Transfer of Rs. 80,000 from AC0001...");
+            accounts[0].transfer(accounts[1], 80000);
+        } catch (BankException e) {
+            System.out.println("   [MAIN CAUGHT RE-THROWN EXCEPTION] " + e.getClass().getSimpleName() + ": " + e.getMessage());
         }
 
-        System.out.println("\n--- [PRACTICAL 6 RECAP: INTERFACES, LAMBDAS & DEFAULT METHODS] ---");
-        // Functional Interface WithdrawRule via Anonymous Class and Lambda
-        WithdrawRule anonymousNightLimitRule = new WithdrawRule() {
-            @Override
-            public boolean allow(Account account, long amount) {
-                return amount <= 20000 && account.canWithdraw(amount);
+        // 4. Supplementary Problem: DailyLimitExceededException Demonstration
+        System.out.println("\n4. Testing Supplementary DailyLimitExceededException (Daily ATM Cap: Rs. 50,000):");
+        long dailyAtmCap = 50000;
+        long attemptedWithdrawal = 75000;
+        try {
+            if (attemptedWithdrawal > dailyAtmCap) {
+                throw new DailyLimitExceededException(
+                    String.format("Transaction declined: Attempted Rs. %d exceeds maximum daily withdrawal cap of Rs. %d", 
+                            attemptedWithdrawal, dailyAtmCap),
+                    dailyAtmCap, attemptedWithdrawal
+                );
             }
-        };
-        WithdrawRule lambdaAtmLimitRule = (account, amount) -> (amount <= 50000 && account.canWithdraw(amount));
+        } catch (DailyLimitExceededException e) {
+            System.out.println("   [DAILY LIMIT EXCEEDED] " + e.getMessage());
+            System.out.println("   -> Limit: Rs. " + e.getLimit() + " | Attempted: Rs. " + e.getAttempted());
+        }
 
-        System.out.println("WithdrawRule Evaluation for AC0001 (Balance Rs. 25,000):");
-        System.out.println(" - Attempt Rs. 15,000 -> Anonymous Night Rule (Max 20k): " + anonymousNightLimitRule.allow(accounts[0], 15000));
-        System.out.println(" - Attempt Rs. 25,000 -> Anonymous Night Rule (Max 20k): " + anonymousNightLimitRule.allow(accounts[0], 25000));
-        System.out.println(" - Attempt Rs. 25,000 -> Lambda ATM Rule (Max 50k):      " + lambdaAtmLimitRule.allow(accounts[0], 25000));
+        // 5. Try-with-resources Demonstration using AutoCloseable BankingSession
+        System.out.println("\n5. Testing Try-With-Resources using AutoCloseable BankingSession:");
+        try (BankingSession session = new BankingSession("Daksh-Admin")) {
+            session.logAudit("Initiated automated integrity & reflection audit");
+            session.logAudit("Checked all 3 account status records");
+            System.out.println("   [WORK DONE] Core transactional batch completed successfully.");
+        } catch (Exception e) {
+            System.out.println("   [ERROR IN SESSION] " + e.getMessage());
+        }
 
         System.out.println("-----------------------------------------------------------\n");
 
@@ -88,17 +113,17 @@ public class MiniBank {
         boolean keepRunning = true;
 
         while (keepRunning) {
-            System.out.println("\n----------------- MINIBANK INTERACTIVE MENU -----------------");
+            System.out.println("\n----------------- MINIBANK FAULT-TOLERANT MENU -----------------");
             System.out.println("1. Open Account (Savings / Current / Fixed Deposit)");
             System.out.println("2. Deposit");
-            System.out.println("3. Withdraw");
+            System.out.println("3. Withdraw (Structured Exception Handling)");
             System.out.println("4. Transfer (Local)");
             System.out.println("5. View Official Account Statement");
-            System.out.println("6. Validate Account Metadata via Reflection (Practical 7)");
+            System.out.println("6. Validate Account Metadata via Reflection");
             System.out.println("7. Verify Customer Credentials (Static Import Validator)");
             System.out.println("8. Check Bank Working Hours");
             System.out.println("9. Exit");
-            System.out.println("------------------------------------------------------------");
+            System.out.println("---------------------------------------------------------------");
             System.out.print("Please enter your choice (1-9): ");
 
             int choice = -1;
@@ -176,7 +201,6 @@ public class MiniBank {
                         }
                     }
 
-                    // Validate newly created account through AnnotationValidator reflection
                     String[] validationErrors = AnnotationValidator.validate(newAcc);
                     if (validationErrors.length > 0) {
                         System.out.println("\n[METADATA WARNING] Account created with annotation warnings:");
@@ -191,35 +215,37 @@ public class MiniBank {
                 case DEPOSIT -> {
                     System.out.print("Enter Account Number (e.g. AC0001): ");
                     String accNo = scanner.nextLine().trim();
-                    Account acc = findAccount(accounts, accountCount, accNo);
-                    if (acc != null) {
+                    try {
+                        Account acc = findAccount(accounts, accountCount, accNo);
                         System.out.print("Enter amount to deposit: ");
                         long amount = scanner.nextLong();
                         scanner.nextLine();
                         acc.deposit(amount);
-                        System.out.println("[SUCCESS] Updated details: " + acc);
-                    } else {
-                        System.out.println("\n[ERROR] Account not found!");
+                        System.out.println("[SUCCESS] Deposit completed. Updated details: " + acc);
+                    } catch (AccountNotFoundException | InvalidAmountException e) {
+                        System.out.println("\n[DEPOSIT FAILED] " + e.getMessage());
                     }
                 }
                 case WITHDRAW -> {
                     System.out.print("Enter Account Number (e.g. AC0001): ");
                     String accNo = scanner.nextLine().trim();
-                    Account acc = findAccount(accounts, accountCount, accNo);
-                    if (acc != null) {
+                    try {
+                        Account acc = findAccount(accounts, accountCount, accNo);
                         System.out.print("Enter amount to withdraw: ");
                         long amount = scanner.nextLong();
                         scanner.nextLine();
-                        
-                        if (lambdaAtmLimitRule.allow(acc, amount)) {
-                            if (acc.withdraw(amount)) {
-                                System.out.println("[SUCCESS] Withdrawal completed. Updated details: " + acc);
-                            }
-                        } else {
-                            System.out.println("[ERROR] Transaction rejected by WithdrawRule (Exceeds limit or insufficient funds).");
-                        }
-                    } else {
-                        System.out.println("\n[ERROR] Account not found!");
+
+                        acc.withdraw(amount);
+                        System.out.println("[SUCCESS] Withdrawal completed. Updated details: " + acc);
+                    } catch (AccountNotFoundException e) {
+                        System.out.println("\n[ERROR] " + e.getMessage());
+                    } catch (InsufficientFundsException e) {
+                        System.out.println(String.format("\n[WITHDRAWAL FAILED: INSUFFICIENT FUNDS] %s | Shortfall: Rs. %d",
+                                e.getMessage(), e.getShortfall()));
+                    } catch (InvalidAmountException e) {
+                        System.out.println("\n[WITHDRAWAL FAILED: INVALID AMOUNT] " + e.getMessage());
+                    } catch (BankException e) {
+                        System.out.println("\n[WITHDRAWAL FAILED: BANK EXCEPTION] " + e.getMessage());
                     }
                 }
                 case TRANSFER -> {
@@ -228,34 +254,37 @@ public class MiniBank {
                     System.out.print("Enter Destination Account Number (Receiver): ");
                     String destAcc = scanner.nextLine().trim();
                     
-                    Account src = findAccount(accounts, accountCount, srcAcc);
-                    Account dest = findAccount(accounts, accountCount, destAcc);
-                    
-                    if (src != null && dest != null) {
+                    try {
+                        Account src = findAccount(accounts, accountCount, srcAcc);
+                        Account dest = findAccount(accounts, accountCount, destAcc);
+                        
                         System.out.print("Enter amount to transfer: ");
                         long amount = scanner.nextLong();
                         scanner.nextLine();
-                        Account.transfer(src, dest, amount);
-                    } else {
-                        System.out.println("\n[ERROR] One or both account numbers are invalid.");
+
+                        src.transfer(dest, amount);
+                    } catch (AccountNotFoundException e) {
+                        System.out.println("\n[TRANSFER FAILED] " + e.getMessage());
+                    } catch (BankException e) {
+                        System.out.println("\n[TRANSFER FAILED: BANK ERROR] " + e.getMessage());
                     }
                 }
                 case VIEW_STATEMENT -> {
                     System.out.print("Enter Account Number (e.g. AC0001): ");
                     String accNo = scanner.nextLine().trim();
-                    Account acc = findAccount(accounts, accountCount, accNo);
-                    if (acc != null) {
+                    try {
+                        Account acc = findAccount(accounts, accountCount, accNo);
                         System.out.println("\n" + StatementFormatter.buildStatement(acc));
                         System.out.println(String.format("5-Year Compound Projection: Rs. %.2f", acc.projectedBalance(5)));
-                    } else {
-                        System.out.println("\n[ERROR] Account not found!");
+                    } catch (AccountNotFoundException e) {
+                        System.out.println("\n[ERROR] " + e.getMessage());
                     }
                 }
                 case VALIDATE_ACCOUNT -> {
                     System.out.print("Enter Account Number to validate: ");
                     String accNo = scanner.nextLine().trim();
-                    Account acc = findAccount(accounts, accountCount, accNo);
-                    if (acc != null) {
+                    try {
+                        Account acc = findAccount(accounts, accountCount, accNo);
                         System.out.println("\n--- Inspecting Metadata via AnnotationValidator ---");
                         String[] errors = AnnotationValidator.validate(acc);
                         if (errors.length == 0) {
@@ -266,8 +295,8 @@ public class MiniBank {
                                 System.out.println(" - " + err);
                             }
                         }
-                    } else {
-                        System.out.println("\n[ERROR] Account not found!");
+                    } catch (AccountNotFoundException e) {
+                        System.out.println("\n[ERROR] " + e.getMessage());
                     }
                 }
                 case VERIFY_CREDENTIALS -> {

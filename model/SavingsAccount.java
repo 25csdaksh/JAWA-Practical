@@ -1,5 +1,8 @@
 package model;
 
+import exception.BankException;
+import exception.InsufficientFundsException;
+import exception.InvalidAmountException;
 import service.Premium;
 
 public class SavingsAccount extends Account implements Premium {
@@ -26,6 +29,22 @@ public class SavingsAccount extends Account implements Premium {
     @Override
     public boolean canWithdraw(long amount) {
         return (getBalance() - amount) >= minBalance;
+    }
+
+    @Override
+    public void withdraw(long amount) throws InsufficientFundsException, InvalidAmountException, BankException {
+        if (amount <= 0) {
+            throw new InvalidAmountException("Withdrawal amount must be positive. Provided: " + amount);
+        }
+        if ((getBalance() - amount) < minBalance) {
+            long shortfall = (minBalance + amount) - getBalance();
+            throw new InsufficientFundsException(
+                String.format("Withdrawal failed: short by %d (Requires maintaining min balance Rs. %d)", 
+                        shortfall, minBalance),
+                shortfall
+            );
+        }
+        adjustBalance(-amount);
     }
 
     @Override

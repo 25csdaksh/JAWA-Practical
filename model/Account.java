@@ -1,5 +1,8 @@
 package model;
 
+import exception.BankException;
+import exception.InsufficientFundsException;
+import exception.InvalidAmountException;
 import java.util.Objects;
 import model.annotation.Id;
 import model.annotation.MaxLength;
@@ -41,7 +44,6 @@ public abstract class Account implements Transactable, InterestBearing {
     // Abstract methods to be implemented by subclasses
     @Override
     public abstract double interestRate();
-
     public abstract boolean canWithdraw(long amount);
 
     // Monthly interest calculation using interestRate() and balance
@@ -53,27 +55,60 @@ public abstract class Account implements Transactable, InterestBearing {
     }
 
     @Override
-    public void deposit(long amount) {
+    public void deposit(long amount) throws InvalidAmountException {
         if (amount <= 0) {
-            System.out.println("[ERROR] Deposit amount must be positive. Provided: " + amount);
-            return;
+            throw new InvalidAmountException("Deposit amount must be positive. Provided: " + amount);
         }
         this.balance += amount;
     }
 
     @Override
-    public boolean withdraw(long amount) {
+    public void withdraw(long amount) throws InsufficientFundsException, InvalidAmountException, BankException {
         if (amount <= 0) {
-            System.out.println("[ERROR] Withdrawal amount must be positive. Provided: " + amount);
-            return false;
+            throw new InvalidAmountException("Withdrawal amount must be positive. Provided: " + amount);
         }
-        if (canWithdraw(amount)) {
-            this.balance -= amount;
-            return true;
+        if (this.balance < amount) {
+            long shortfall = amount - this.balance;
+            throw new InsufficientFundsException(
+                String.format("Withdrawal failed: short by %d (Balance: %d, Attempted: %d)", 
+                        shortfall, this.balance, amount),
+                shortfall
+            );
         }
-        System.out.println("[ERROR] Withdrawal not allowed or limit exceeded. Account: " 
-                           + this.accountNumber + ", Attempted: " + amount + ", Current Balance: " + this.balance);
-        return false;
+        this.balance -= amount;
+    }
+
+    // Protected helper for subclasses to update balance after validation
+    protected void adjustBalance(long delta) {
+        this.balance += delta;
+    }
+
+    // Transfer method using try-catch-finally and re-throwing BankException
+    public void transfer(Account to, long amount) throws BankException {
+        if (to == null) {
+            throw new BankException("Destination account cannot be null.");
+        }
+        System.out.println(String.format("[TRANSFER INITIATED] Transferring Rs. %d from %s to %s...",
+                amount, this.getAccountNumber(), to.getAccountNumber()));
+        boolean debited = false;
+        try {
+            this.withdraw(amount);
+            debited = true;
+            to.deposit(amount);
+            System.out.println("[TRANSFER SUCCESS] Transfer completed successfully.");
+        } catch (BankException e) {
+            if (debited) {
+                // Rollback if destination deposit failed
+                try {
+                    this.deposit(amount);
+                } catch (Exception ignored) {}
+            }
+            System.out.println("[TRANSFER FAILED] " + e.getMessage());
+            throw e; // Re-throw BankException
+        } finally {
+            System.out.println(String.format("[TRANSFER AUDIT] Final Balances -> Sender %s: Rs. %d | Receiver %s: Rs. %d",
+                    this.getAccountNumber(), this.getBalance(), to.getAccountNumber(), to.getBalance()));
+        }
     }
 
     // Getters
@@ -89,25 +124,6 @@ public abstract class Account implements Transactable, InterestBearing {
 
     public void setActive(boolean active) {
         this.active = active;
-    }
-
-    public static boolean transfer(Account source, Account destination, long amount) {
-        if (amount <= 0) {
-            System.out.println("[ERROR] Transfer amount must be positive.");
-            return false;
-        }
-        
-        System.out.println("[TRANSFER] Initiating transfer of Rs. " + amount 
-                           + " from " + source.getAccountNumber() + " to " + destination.getAccountNumber());
-        
-        if (source.withdraw(amount)) {
-            destination.deposit(amount);
-            System.out.println("[TRANSFER] Transfer successful!");
-            return true;
-        } else {
-            System.out.println("[TRANSFER] Transfer failed.");
-            return false;
-        }
     }
 
     @Override

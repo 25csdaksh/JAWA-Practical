@@ -1,5 +1,8 @@
 package model;
 
+import exception.BankException;
+import exception.InsufficientFundsException;
+import exception.InvalidAmountException;
 import java.time.LocalDate;
 import service.Premium;
 
@@ -37,10 +40,28 @@ public class FixedDepositAccount extends Account implements Premium {
     @Override
     public boolean canWithdraw(long amount) {
         if (!isMatured()) {
-            System.out.println("[LOCK NOTICE] Fixed Deposit is locked until maturity date: " + maturityDate);
             return false;
         }
         return getBalance() >= amount;
+    }
+
+    @Override
+    public void withdraw(long amount) throws InsufficientFundsException, InvalidAmountException, BankException {
+        if (amount <= 0) {
+            throw new InvalidAmountException("Withdrawal amount must be positive. Provided: " + amount);
+        }
+        if (!isMatured()) {
+            throw new BankException("Withdrawal failed: Fixed Deposit is locked until maturity date (" + maturityDate + ")");
+        }
+        if (getBalance() < amount) {
+            long shortfall = amount - getBalance();
+            throw new InsufficientFundsException(
+                String.format("Withdrawal failed: short by %d (Balance: %d, Attempted: %d)", 
+                        shortfall, getBalance(), amount),
+                shortfall
+            );
+        }
+        adjustBalance(-amount);
     }
 
     @Override
