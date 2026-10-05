@@ -1,6 +1,9 @@
-import java.time.LocalDate;
+package model;
 
-public class FixedDepositAccount extends Account {
+import java.time.LocalDate;
+import service.Premium;
+
+public class FixedDepositAccount extends Account implements Premium {
     private final LocalDate maturityDate;
     private boolean matured;
 
@@ -31,7 +34,6 @@ public class FixedDepositAccount extends Account {
         return 7.0;
     }
 
-    // Supplementary: allows withdrawal only if the deposit has reached or passed maturity date
     @Override
     public boolean canWithdraw(long amount) {
         if (!isMatured()) {

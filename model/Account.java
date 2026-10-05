@@ -1,9 +1,13 @@
-import java.util.Objects;
+package model;
 
-public abstract class Account {
+import java.util.Objects;
+import service.InterestBearing;
+import service.Transactable;
+
+public abstract class Account implements Transactable, InterestBearing {
     private final String accountNumber;
     private String ownerName;
-    private long balance; // whole rupees (can become negative for CurrentAccount within overdraft)
+    private long balance; // whole rupees
     private boolean active;
 
     private static long accountCounter = 0;
@@ -25,10 +29,11 @@ public abstract class Account {
     }
 
     // Abstract methods to be implemented by subclasses
+    @Override
     public abstract double interestRate();
     public abstract boolean canWithdraw(long amount);
 
-    // Supplementary: Monthly interest calculation using interestRate() and balance
+    // Monthly interest calculation using interestRate() and balance
     public double monthlyInterest() {
         if (balance <= 0) {
             return 0.0;
@@ -36,6 +41,7 @@ public abstract class Account {
         return (balance * (interestRate() / 100.0)) / 12.0;
     }
 
+    @Override
     public void deposit(long amount) {
         if (amount <= 0) {
             System.out.println("[ERROR] Deposit amount must be positive. Provided: " + amount);
@@ -44,6 +50,7 @@ public abstract class Account {
         this.balance += amount;
     }
 
+    @Override
     public boolean withdraw(long amount) {
         if (amount <= 0) {
             System.out.println("[ERROR] Withdrawal amount must be positive. Provided: " + amount);
@@ -61,6 +68,7 @@ public abstract class Account {
     // Getters
     public String getAccountNumber() { return accountNumber; }
     public String getOwnerName() { return ownerName; }
+    @Override
     public long getBalance() { return balance; }
     public boolean isActive() { return active; }
 
@@ -120,6 +128,7 @@ public abstract class Account {
                "Current Balance: Rs. " + balance + "\n" +
                "Interest Rate  : " + String.format("%.2f%%", interestRate()) + "\n" +
                "Est. Mo. Interest: Rs. " + String.format("%.2f", monthlyInterest()) + "\n" +
+               "Est. Yr. Interest: Rs. " + String.format("%.2f", yearlyInterest()) + "\n" +
                "Account Status : " + (active ? "ACTIVE" : "INACTIVE") + "\n" +
                "----------------------------------------";
     }

@@ -1,13 +1,14 @@
+package model;
+
 public class Customer implements Cloneable {
     private String name;
     private String email;
     private String mobile;
     private final String customerId;
-    private Address address; // Address field
+    private Address address;
 
     private static long customerCounter = 100;
 
-    // (3) Public static nested class named Address
     public static class Address {
         private final String line;
         private final String city;
@@ -34,7 +35,6 @@ public class Customer implements Cloneable {
         return "CUST" + customerCounter;
     }
 
-    // Constructor with Address
     public Customer(String name, String email, String mobile, Address address) {
         this.name = name;
         this.email = email;
@@ -43,7 +43,6 @@ public class Customer implements Cloneable {
         this.customerId = generateCustomerId();
     }
 
-    // Constructor without Address (chains with null Address)
     public Customer(String name, String email, String mobile) {
         this(name, email, mobile, null);
     }
@@ -59,12 +58,10 @@ public class Customer implements Cloneable {
         this.address = address;
     }
 
-    // (4) clone() method that returns a copy of the customer (deep copying Address)
     @Override
     public Customer clone() {
         try {
             Customer cloned = (Customer) super.clone();
-            // Perform deep copy for Address reference
             if (this.address != null) {
                 cloned.address = new Address(this.address.line, this.address.city, this.address.pincode);
             }

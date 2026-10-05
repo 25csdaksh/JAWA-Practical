@@ -1,14 +1,8 @@
 import java.util.Scanner;
-
-record BankInfo(String name, String branch) {
-    @Override
-    public String toString() {
-        return "=================================================\n" +
-               "           " + name.toUpperCase() + "\n" +
-               "           Branch: " + branch + "\n" +
-               "=================================================";
-    }
-}
+import model.*;
+import service.*;
+import util.*;
+import static util.Validator.*; // Static import for Validator methods
 
 public class MiniBank {
     enum MenuOption {
@@ -17,6 +11,7 @@ public class MiniBank {
         WITHDRAW,
         TRANSFER,
         VIEW_STATEMENT,
+        VERIFY_CREDENTIALS,
         WORKING_HOURS,
         EXIT
     }
@@ -37,69 +32,75 @@ public class MiniBank {
         Account[] accounts = new Account[100];
         int accountCount = 0;
 
-        // Pre-load accounts with different concrete subclasses
-        accounts[accountCount++] = new SavingsAccount("Daksh Soni", 15000, 1000);
-        accounts[accountCount++] = new CurrentAccount("Prof. Sharma", 25000, 10000);
-        accounts[accountCount++] = new FixedDepositAccount("Alice Smith", 50000);
+        // Pre-load accounts (Demonstrating model package & Premium marker interface)
+        accounts[accountCount++] = new SavingsAccount("Daksh Soni", 25000, 1000);
+        accounts[accountCount++] = new CurrentAccount("Prof. Sharma", 40000, 15000);
+        accounts[accountCount++] = new FixedDepositAccount("Alice Smith", 100000);
 
-        System.out.println("\n--- [PRACTICAL 5 DEMONSTRATION: INHERITANCE & POLYMORPHISM] ---");
+        System.out.println("\n--- [PRACTICAL 6 DEMONSTRATION: INTERFACES, PACKAGES & LAMBDAS] ---");
 
-        // 1. Loop through Account[] array calling interestRate() on each (Polymorphism)
-        System.out.println("\nPolymorphic Interest Rate & Account Inspection Loop:");
-        System.out.println(String.format("%-8s | %-16s | %-20s | %-14s | %-16s | %-30s", 
-            "Acc No", "Owner", "Account Type", "Balance", "Interest Rate", "Special Subtype Attribute"));
-        System.out.println("------------------------------------------------------------------------------------------------------------------");
+        // 1. Functional Interface WithdrawRule: Anonymous Class vs Lambda Expression
+        System.out.println("\n1. Testing WithdrawRule Functional Interface (Anonymous Class vs Lambda):");
 
+        // (a) Implemented as an Anonymous Class (Rule: Max Rs. 20,000 per transaction & check account capability)
+        WithdrawRule anonymousNightLimitRule = new WithdrawRule() {
+            @Override
+            public boolean allow(Account account, long amount) {
+                return amount <= 20000 && account.canWithdraw(amount);
+            }
+        };
+
+        // (b) Implemented as a Lambda Expression (Rule: Max Rs. 50,000 ATM limit & check account capability)
+        WithdrawRule lambdaAtmLimitRule = (account, amount) -> (amount <= 50000 && account.canWithdraw(amount));
+
+        Account testSavings = accounts[0];
+        long testAmt1 = 15000;
+        long testAmt2 = 25000;
+
+        System.out.println("Test Account: " + testSavings.getAccountNumber() + " | Balance: Rs. " + testSavings.getBalance());
+        System.out.println(String.format(" - Attempt Rs. %d -> Anonymous Class Rule (Max 20k) Allowed? %b",
+                testAmt1, anonymousNightLimitRule.allow(testSavings, testAmt1)));
+        System.out.println(String.format(" - Attempt Rs. %d -> Anonymous Class Rule (Max 20k) Allowed? %b",
+                testAmt2, anonymousNightLimitRule.allow(testSavings, testAmt2)));
+        System.out.println(String.format(" - Attempt Rs. %d -> Lambda Expression Rule (Max 50k) Allowed? %b",
+                testAmt2, lambdaAtmLimitRule.allow(testSavings, testAmt2)));
+
+        // 2. Default Methods in InterestBearing interface
+        System.out.println("\n2. Testing Default Methods in InterestBearing Interface:");
+        System.out.println(String.format("%-8s | %-16s | %-12s | %-16s | %-20s",
+                "Acc No", "Owner", "Rate", "Yearly Interest", "5-Yr Compounded Value"));
+        System.out.println("----------------------------------------------------------------------------------");
         for (int i = 0; i < accountCount; i++) {
             Account acc = accounts[i];
-            double rate = acc.interestRate(); // Dynamic method dispatch (Polymorphism)
-            double monthlyInt = acc.monthlyInterest();
+            // Calling default method (1): yearlyInterest()
+            double yearly = acc.yearlyInterest();
+            // Calling supplementary default method (2): projectedBalance(years)
+            double projected5Yr = acc.projectedBalance(5);
 
-            // 2. Use Pattern Matching instanceof to handle each subtype specially
-            String subtypeDetail;
-            if (acc instanceof SavingsAccount sa) {
-                subtypeDetail = "Min Balance Req: Rs. " + sa.getMinBalance();
-            } else if (acc instanceof CurrentAccount ca) {
-                subtypeDetail = "Overdraft Limit: Rs. " + ca.getOverdraftLimit();
-            } else if (acc instanceof FixedDepositAccount fda) {
-                subtypeDetail = "Matures: " + fda.getMaturityDate() + " (Locked=" + !fda.isMatured() + ")";
+            System.out.println(String.format("%-8s | %-16s | %-10.1f%% | Rs. %-12.2f | Rs. %-16.2f",
+                    acc.getAccountNumber(), acc.getOwnerName(), acc.interestRate(), yearly, projected5Yr));
+        }
+        System.out.println("----------------------------------------------------------------------------------");
+
+        // 3. Marker Interface Check (Premium)
+        System.out.println("\n3. Testing Premium Marker Interface Detection:");
+        for (int i = 0; i < accountCount; i++) {
+            Account acc = accounts[i];
+            if (acc instanceof Premium) {
+                System.out.println(" [VIP PRIVILEGE] " + acc.getAccountNumber() + " (" + acc.getOwnerName() 
+                        + ") is marked as a PREMIUM account. Eligible for priority concierge & relationship manager.");
             } else {
-                subtypeDetail = "Generic Account";
+                System.out.println(" [STANDARD] " + acc.getAccountNumber() + " (" + acc.getOwnerName() 
+                        + ") is a Standard account.");
             }
-
-            System.out.println(String.format("%-8s | %-16s | %-20s | Rs. %-10d | %-14s | %-30s",
-                acc.getAccountNumber(), acc.getOwnerName(), acc.getClass().getSimpleName(), 
-                acc.getBalance(), String.format("%.1f%% (Rs. %.2f/mo)", rate, monthlyInt), subtypeDetail));
         }
-        System.out.println("------------------------------------------------------------------------------------------------------------------");
 
-        // 3. Testing Polymorphic Withdrawal & Business Rules
-        System.out.println("\nTesting Polymorphic Withdrawal Rules across Account Types:");
-
-        // Test Savings Account minimum balance protection
-        System.out.println("\n1. Testing SavingsAccount (AC0001) - Balance: Rs. 15,000 | MinBalance: Rs. 1,000");
-        System.out.println("Attempting withdrawal of Rs. 14,500 (would leave Rs. 500 < minBalance):");
-        accounts[0].withdraw(14500); // Should fail
-        System.out.println("Attempting withdrawal of Rs. 10,000 (leaves Rs. 5,000 >= minBalance):");
-        accounts[0].withdraw(10000); // Should succeed
-
-        // Test Current Account overdraft limit
-        System.out.println("\n2. Testing CurrentAccount (AC0002) - Balance: Rs. 25,000 | Overdraft Limit: Rs. 10,000");
-        System.out.println("Attempting withdrawal of Rs. 30,000 (leaves balance Rs. -5,000 within overdraft):");
-        accounts[1].withdraw(30000); // Should succeed
-        System.out.println("Attempting additional withdrawal of Rs. 10,000 (would exceed overdraft limit):");
-        accounts[1].withdraw(10000); // Should fail
-
-        // Test Fixed Deposit Account lock-in and maturity
-        System.out.println("\n3. Testing FixedDepositAccount (AC0003) - Balance: Rs. 50,000 | Locked");
-        System.out.println("Attempting premature withdrawal of Rs. 10,000 on locked FD:");
-        accounts[2].withdraw(10000); // Should fail
-        System.out.println("Simulating maturity for FixedDepositAccount (AC0003)...");
-        if (accounts[2] instanceof FixedDepositAccount fda) {
-            fda.setMatured(true);
-            System.out.println("Attempting withdrawal of Rs. 20,000 post-maturity:");
-            fda.withdraw(20000); // Should succeed
-        }
+        // 4. Static Import Test (Using Validator methods directly without class qualifier)
+        System.out.println("\n4. Testing Static Import of Validator Methods:");
+        System.out.println(" - isValidMobile(\"9876543210\"): " + isValidMobile("9876543210"));
+        System.out.println(" - isValidEmail(\"daksh@charusat.edu.in\"): " + isValidEmail("daksh@charusat.edu.in"));
+        System.out.println(" - isValidPan(\"ABCDE1234F\"): " + isValidPan("ABCDE1234F"));
+        System.out.println(" - isValidAmount(\"5000\"): " + isValidAmount("5000"));
 
         System.out.println("-----------------------------------------------------------\n");
 
@@ -107,23 +108,24 @@ public class MiniBank {
         boolean keepRunning = true;
 
         while (keepRunning) {
-            System.out.println("\n----------------- INTERACTIVE MENU -----------------");
+            System.out.println("\n----------------- MINIBANK INTERACTIVE MENU -----------------");
             System.out.println("1. Open Account (Savings / Current / Fixed Deposit)");
             System.out.println("2. Deposit");
             System.out.println("3. Withdraw");
             System.out.println("4. Transfer (Local)");
-            System.out.println("5. View Account Statement");
-            System.out.println("6. Check Bank Working Hours");
-            System.out.println("7. Exit");
-            System.out.println("----------------------------------------------------");
-            System.out.print("Please enter your choice (1-7): ");
+            System.out.println("5. View Official Account Statement");
+            System.out.println("6. Verify Customer Credentials (Static Import Validator)");
+            System.out.println("7. Check Bank Working Hours");
+            System.out.println("8. Exit");
+            System.out.println("------------------------------------------------------------");
+            System.out.print("Please enter your choice (1-8): ");
 
             int choice = -1;
             if (scanner.hasNextInt()) {
                 choice = scanner.nextInt();
-                scanner.nextLine(); // Consume newline
+                scanner.nextLine();
             } else {
-                scanner.nextLine(); // Clear buffer
+                scanner.nextLine();
             }
 
             MenuOption selectedOption = switch (choice) {
@@ -132,13 +134,14 @@ public class MiniBank {
                 case 3 -> MenuOption.WITHDRAW;
                 case 4 -> MenuOption.TRANSFER;
                 case 5 -> MenuOption.VIEW_STATEMENT;
-                case 6 -> MenuOption.WORKING_HOURS;
-                case 7 -> MenuOption.EXIT;
+                case 6 -> MenuOption.VERIFY_CREDENTIALS;
+                case 7 -> MenuOption.WORKING_HOURS;
+                case 8 -> MenuOption.EXIT;
                 default -> null;
             };
 
             if (selectedOption == null) {
-                System.out.println("\n[ERROR] Invalid menu choice. Please select a valid number between 1 and 7.");
+                System.out.println("\n[ERROR] Invalid menu choice. Please select a valid number between 1 and 8.");
                 continue;
             }
 
@@ -149,9 +152,9 @@ public class MiniBank {
                         break;
                     }
                     System.out.println("\nSelect Account Type:");
-                    System.out.println("1. Savings Account (4.0% Interest, Min Balance)");
+                    System.out.println("1. Savings Account (4.0% Interest, Min Balance, Premium Status)");
                     System.out.println("2. Current Account (0.0% Interest, Overdraft Facility)");
-                    System.out.println("3. Fixed Deposit Account (7.0% Interest, Locked Deposit)");
+                    System.out.println("3. Fixed Deposit Account (7.0% Interest, Locked Deposit, Premium Status)");
                     System.out.print("Choice (1-3): ");
                     
                     int accTypeChoice = 1;
@@ -168,7 +171,7 @@ public class MiniBank {
                     long openingBal = scanner.nextLong();
                     scanner.nextLine();
 
-                    Account newAcc = null;
+                    Account newAcc;
                     switch (accTypeChoice) {
                         case 1 -> {
                             System.out.print("Enter minimum balance requirement (e.g. 500): ");
@@ -216,8 +219,14 @@ public class MiniBank {
                         System.out.print("Enter amount to withdraw: ");
                         long amount = scanner.nextLong();
                         scanner.nextLine();
-                        if (acc.withdraw(amount)) {
-                            System.out.println("[SUCCESS] Updated details: " + acc);
+                        
+                        // Validating withdrawal through lambda WithdrawRule
+                        if (lambdaAtmLimitRule.allow(acc, amount)) {
+                            if (acc.withdraw(amount)) {
+                                System.out.println("[SUCCESS] Withdrawal completed. Updated details: " + acc);
+                            }
+                        } else {
+                            System.out.println("[ERROR] Transaction rejected by WithdrawRule (Exceeds limit or insufficient funds).");
                         }
                     } else {
                         System.out.println("\n[ERROR] Account not found!");
@@ -246,10 +255,25 @@ public class MiniBank {
                     String accNo = scanner.nextLine().trim();
                     Account acc = findAccount(accounts, accountCount, accNo);
                     if (acc != null) {
-                        System.out.println("\n" + acc.getStatement());
+                        System.out.println("\n" + StatementFormatter.buildStatement(acc));
+                        System.out.println(String.format("5-Year Compound Projection: Rs. %.2f", acc.projectedBalance(5)));
                     } else {
                         System.out.println("\n[ERROR] Account not found!");
                     }
+                }
+                case VERIFY_CREDENTIALS -> {
+                    System.out.println("\n--- Credential Verification Form (via Static Imports) ---");
+                    System.out.print("Enter Mobile Number: ");
+                    String mob = scanner.nextLine().trim();
+                    System.out.println(" -> Valid Mobile? " + isValidMobile(mob));
+
+                    System.out.print("Enter Email Address: ");
+                    String email = scanner.nextLine().trim();
+                    System.out.println(" -> Valid Email? " + isValidEmail(email));
+
+                    System.out.print("Enter PAN Card: ");
+                    String pan = scanner.nextLine().trim();
+                    System.out.println(" -> Valid PAN? " + isValidPan(pan));
                 }
                 case WORKING_HOURS -> {
                     System.out.println("""
