@@ -13,6 +13,7 @@ public class MiniBank {
         TRANSFER,
         VIEW_STATEMENT,
         VALIDATE_ACCOUNT,
+        CONCURRENCY_TEST,
         VERIFY_CREDENTIALS,
         WORKING_HOURS,
         EXIT
@@ -39,73 +40,101 @@ public class MiniBank {
         accounts[accountCount++] = new CurrentAccount("Prof. Sharma", 40000, 15000);
         accounts[accountCount++] = new FixedDepositAccount("Alice Smith", 100000);
 
-        System.out.println("\n--- [PRACTICAL 8 DEMONSTRATION: CUSTOM EXCEPTIONS & FAULT TOLERANCE] ---");
+        System.out.println("\n--- [PRACTICAL 9 DEMONSTRATION: MULTITHREADING & SYNCHRONIZATION] ---");
 
-        // 1. Mandatory Milestone Test: Account with balance 1000, withdraw(5000) throws InsufficientFundsException (shortfall = 4000)
-        System.out.println("\n1. Mandatory Test: Withdrawing Rs. 5,000 from an Account with Balance Rs. 1,000:");
-        Account milestoneAccount = new SavingsAccount("Test Account", 1000, 0);
-        System.out.println("   Initial State: " + milestoneAccount);
-        try {
-            System.out.println("   Executing: milestoneAccount.withdraw(5000)...");
-            milestoneAccount.withdraw(5000);
-        } catch (InsufficientFundsException e) {
-            System.out.println("   [EXPECTED EXCEPTION CAUGHT] " + e.getMessage());
-            System.out.println("   -> Shortfall Amount Stored in Exception: Rs. " + e.getShortfall());
-        } catch (BankException e) {
-            System.out.println("   [BANK ERROR] " + e.getMessage());
-        } finally {
-            System.out.println("   [FINALLY BLOCK] Balance after attempt: Rs. " + milestoneAccount.getBalance() + " (Unchanged)");
+        // 1. Race Condition Demonstration: Unsynchronized Deposits
+        System.out.println("\n1. Demonstrating Multi-threaded Race Condition on Account (Unsynchronized):");
+        Account raceAccount = new SavingsAccount("Concurrent Test User", 0, 0);
+        int numThreads = 10;
+        int depositsPerThread = 1000;
+        long amountPerDeposit = 1;
+        long expectedTotal = numThreads * depositsPerThread * amountPerDeposit; // 10,000
+
+        System.out.println(String.format("   Initial Balance: Rs. %d | Starting %d threads (each %d deposits of Rs. %d)",
+                raceAccount.getBalance(), numThreads, depositsPerThread, amountPerDeposit));
+        System.out.println("   Expected Final Balance: Rs. " + expectedTotal);
+
+        Thread[] unsafeThreads = new Thread[numThreads];
+        for (int i = 0; i < numThreads; i++) {
+            unsafeThreads[i] = new Thread(
+                new AccountWorker(raceAccount, depositsPerThread, amountPerDeposit, true), // unsafeMode = true
+                "UnsafeWorker-" + (i + 1)
+            );
         }
 
-        // 2. Deposit Test with Negative Amount -> InvalidAmountException
-        System.out.println("\n2. Testing Deposit with Negative Amount (-500):");
-        try {
-            System.out.println("   Executing: accounts[0].deposit(-500)...");
-            accounts[0].deposit(-500);
-        } catch (InvalidAmountException e) {
-            System.out.println("   [EXPECTED EXCEPTION CAUGHT] InvalidAmountException: " + e.getMessage());
-        } finally {
-            System.out.println("   [FINALLY BLOCK] Account AC0001 balance remains: Rs. " + accounts[0].getBalance());
+        // Observe thread lifecycle: NEW -> RUNNABLE -> TERMINATED
+        System.out.println("   Thread state before start: " + unsafeThreads[0].getName() + " is " + unsafeThreads[0].getState());
+        for (Thread t : unsafeThreads) t.start();
+        System.out.println("   Thread state during execution: " + unsafeThreads[0].getName() + " is " + unsafeThreads[0].getState());
+
+        for (Thread t : unsafeThreads) {
+            try {
+                t.join(); // Wait for completion
+            } catch (InterruptedException ignored) {}
+        }
+        System.out.println("   Thread state after completion: " + unsafeThreads[0].getName() + " is " + unsafeThreads[0].getState());
+
+        long unsafeFinalBalance = raceAccount.getBalance();
+        System.out.println("   Actual Final Balance: Rs. " + unsafeFinalBalance);
+        System.out.println("   Discrepancy (Lost Deposits): Rs. " + (expectedTotal - unsafeFinalBalance));
+        System.out.println("   Status: " + (unsafeFinalBalance < expectedTotal ? "[RACE CONDITION OBSERVED - BALANCE WRONG]" : "[PASS]"));
+
+        // 2. Synchronized Thread-Safe Demonstration (The Fix)
+        System.out.println("\n2. Demonstrating Synchronized Thread-Safe Multi-threaded Deposits (The Fix):");
+        Account syncAccount = new SavingsAccount("Sync Test User", 0, 0);
+
+        Thread[] safeThreads = new Thread[numThreads];
+        for (int i = 0; i < numThreads; i++) {
+            safeThreads[i] = new Thread(
+                new AccountWorker(syncAccount, depositsPerThread, amountPerDeposit, false), // synchronized
+                "SafeWorker-" + (i + 1)
+            );
         }
 
-        // 3. Transfer Test: try-catch-finally with Re-throwing BankException
-        System.out.println("\n3. Testing Transfer Method (Success followed by Excessive Transfer):");
-        try {
-            // Valid transfer
-            accounts[0].transfer(accounts[1], 5000);
-            // Excessive transfer exceeding balance
-            System.out.println("\n   Attempting Excessive Transfer of Rs. 80,000 from AC0001...");
-            accounts[0].transfer(accounts[1], 80000);
-        } catch (BankException e) {
-            System.out.println("   [MAIN CAUGHT RE-THROWN EXCEPTION] " + e.getClass().getSimpleName() + ": " + e.getMessage());
+        for (Thread t : safeThreads) t.start();
+        for (Thread t : safeThreads) {
+            try {
+                t.join();
+            } catch (InterruptedException ignored) {}
         }
 
-        // 4. Supplementary Problem: DailyLimitExceededException Demonstration
-        System.out.println("\n4. Testing Supplementary DailyLimitExceededException (Daily ATM Cap: Rs. 50,000):");
-        long dailyAtmCap = 50000;
-        long attemptedWithdrawal = 75000;
-        try {
-            if (attemptedWithdrawal > dailyAtmCap) {
-                throw new DailyLimitExceededException(
-                    String.format("Transaction declined: Attempted Rs. %d exceeds maximum daily withdrawal cap of Rs. %d", 
-                            attemptedWithdrawal, dailyAtmCap),
-                    dailyAtmCap, attemptedWithdrawal
-                );
-            }
-        } catch (DailyLimitExceededException e) {
-            System.out.println("   [DAILY LIMIT EXCEEDED] " + e.getMessage());
-            System.out.println("   -> Limit: Rs. " + e.getLimit() + " | Attempted: Rs. " + e.getAttempted());
+        long safeFinalBalance = syncAccount.getBalance();
+        System.out.println("   Actual Final Balance: Rs. " + safeFinalBalance);
+        System.out.println("   Discrepancy: Rs. " + (expectedTotal - safeFinalBalance));
+        System.out.println("   Status: " + (safeFinalBalance == expectedTotal ? "[THREAD-SAFE - EXACT 10,000 GUARANTEED]" : "[FAILED]"));
+
+        // 3. Supplementary Test: Mixed Concurrent Deposits and Withdrawals
+        System.out.println("\n3. Supplementary Test: Concurrent Mixed Deposits & Withdrawals:");
+        Account mixedAccount = new SavingsAccount("Mixed Concurrency User", 5000, 0);
+        System.out.println("   Initial Balance: Rs. " + mixedAccount.getBalance());
+
+        Thread[] mixedThreads = new Thread[10];
+        // 5 threads depositing Rs. 1,000 each (Total +5,000)
+        for (int i = 0; i < 5; i++) {
+            mixedThreads[i] = new Thread(
+                new AccountWorker(mixedAccount, 1, 1000, AccountWorker.Operation.DEPOSIT, false),
+                "DepositWorker-" + (i + 1)
+            );
+        }
+        // 5 threads withdrawing Rs. 500 each (Total -2,500)
+        for (int i = 5; i < 10; i++) {
+            mixedThreads[i] = new Thread(
+                new AccountWorker(mixedAccount, 1, 500, AccountWorker.Operation.WITHDRAW, false),
+                "WithdrawWorker-" + (i - 4)
+            );
         }
 
-        // 5. Try-with-resources Demonstration using AutoCloseable BankingSession
-        System.out.println("\n5. Testing Try-With-Resources using AutoCloseable BankingSession:");
-        try (BankingSession session = new BankingSession("Daksh-Admin")) {
-            session.logAudit("Initiated automated integrity & reflection audit");
-            session.logAudit("Checked all 3 account status records");
-            System.out.println("   [WORK DONE] Core transactional batch completed successfully.");
-        } catch (Exception e) {
-            System.out.println("   [ERROR IN SESSION] " + e.getMessage());
+        for (Thread t : mixedThreads) t.start();
+        for (Thread t : mixedThreads) {
+            try {
+                t.join();
+            } catch (InterruptedException ignored) {}
         }
+
+        long expectedMixedBalance = 5000 + (5 * 1000) - (5 * 500); // 7500
+        System.out.println(String.format("   Expected Balance: Rs. %d | Actual Balance: Rs. %d -> %s",
+                expectedMixedBalance, mixedAccount.getBalance(), 
+                (mixedAccount.getBalance() == expectedMixedBalance ? "[EXACT MATCH]" : "[MISMATCH]")));
 
         System.out.println("-----------------------------------------------------------\n");
 
@@ -113,18 +142,19 @@ public class MiniBank {
         boolean keepRunning = true;
 
         while (keepRunning) {
-            System.out.println("\n----------------- MINIBANK FAULT-TOLERANT MENU -----------------");
+            System.out.println("\n----------------- MINIBANK ENTERPRISE MENU -----------------");
             System.out.println("1. Open Account (Savings / Current / Fixed Deposit)");
             System.out.println("2. Deposit");
-            System.out.println("3. Withdraw (Structured Exception Handling)");
+            System.out.println("3. Withdraw");
             System.out.println("4. Transfer (Local)");
             System.out.println("5. View Official Account Statement");
             System.out.println("6. Validate Account Metadata via Reflection");
-            System.out.println("7. Verify Customer Credentials (Static Import Validator)");
-            System.out.println("8. Check Bank Working Hours");
-            System.out.println("9. Exit");
-            System.out.println("---------------------------------------------------------------");
-            System.out.print("Please enter your choice (1-9): ");
+            System.out.println("7. Run Concurrency & Race Condition Benchmark (Practical 9)");
+            System.out.println("8. Verify Customer Credentials (Static Import Validator)");
+            System.out.println("9. Check Bank Working Hours");
+            System.out.println("10. Exit");
+            System.out.println("-----------------------------------------------------------");
+            System.out.print("Please enter your choice (1-10): ");
 
             int choice = -1;
             if (scanner.hasNextInt()) {
@@ -141,14 +171,15 @@ public class MiniBank {
                 case 4 -> MenuOption.TRANSFER;
                 case 5 -> MenuOption.VIEW_STATEMENT;
                 case 6 -> MenuOption.VALIDATE_ACCOUNT;
-                case 7 -> MenuOption.VERIFY_CREDENTIALS;
-                case 8 -> MenuOption.WORKING_HOURS;
-                case 9 -> MenuOption.EXIT;
+                case 7 -> MenuOption.CONCURRENCY_TEST;
+                case 8 -> MenuOption.VERIFY_CREDENTIALS;
+                case 9 -> MenuOption.WORKING_HOURS;
+                case 10 -> MenuOption.EXIT;
                 default -> null;
             };
 
             if (selectedOption == null) {
-                System.out.println("\n[ERROR] Invalid menu choice. Please select a valid number between 1 and 9.");
+                System.out.println("\n[ERROR] Invalid menu choice. Please select a valid number between 1 and 10.");
                 continue;
             }
 
@@ -298,6 +329,21 @@ public class MiniBank {
                     } catch (AccountNotFoundException e) {
                         System.out.println("\n[ERROR] " + e.getMessage());
                     }
+                }
+                case CONCURRENCY_TEST -> {
+                    System.out.println("\n--- Running Live Multithreading Concurrency Benchmark ---");
+                    Account benchAcc = new SavingsAccount("Stress Test Account", 0, 0);
+                    Thread[] ths = new Thread[10];
+                    for (int i = 0; i < 10; i++) {
+                        ths[i] = new Thread(new AccountWorker(benchAcc, 1000, 1, false), "WorkerThread-" + (i + 1));
+                        ths[i].start();
+                    }
+                    for (Thread t : ths) {
+                        try { t.join(); } catch (InterruptedException ignored) {}
+                    }
+                    System.out.println("10 threads x 1,000 synchronized deposits completed!");
+                    System.out.println("Final Balance: Rs. " + benchAcc.getBalance() + " (Expected: Rs. 10000) -> " 
+                            + (benchAcc.getBalance() == 10000 ? "[PASS - THREAD SAFE]" : "[FAIL]"));
                 }
                 case VERIFY_CREDENTIALS -> {
                     System.out.println("\n--- Credential Verification Form (via Static Imports) ---");

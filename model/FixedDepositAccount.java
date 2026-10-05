@@ -24,11 +24,11 @@ public class FixedDepositAccount extends Account implements Premium {
         return maturityDate;
     }
 
-    public boolean isMatured() {
+    public synchronized boolean isMatured() {
         return matured || (maturityDate != null && !LocalDate.now().isBefore(maturityDate));
     }
 
-    public void setMatured(boolean matured) {
+    public synchronized void setMatured(boolean matured) {
         this.matured = matured;
     }
 
@@ -38,7 +38,7 @@ public class FixedDepositAccount extends Account implements Premium {
     }
 
     @Override
-    public boolean canWithdraw(long amount) {
+    public synchronized boolean canWithdraw(long amount) {
         if (!isMatured()) {
             return false;
         }
@@ -46,7 +46,7 @@ public class FixedDepositAccount extends Account implements Premium {
     }
 
     @Override
-    public void withdraw(long amount) throws InsufficientFundsException, InvalidAmountException, BankException {
+    public synchronized void withdraw(long amount) throws InsufficientFundsException, InvalidAmountException, BankException {
         if (amount <= 0) {
             throw new InvalidAmountException("Withdrawal amount must be positive. Provided: " + amount);
         }

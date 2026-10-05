@@ -47,23 +47,38 @@ public abstract class Account implements Transactable, InterestBearing {
     public abstract boolean canWithdraw(long amount);
 
     // Monthly interest calculation using interestRate() and balance
-    public double monthlyInterest() {
+    public synchronized double monthlyInterest() {
         if (balance <= 0) {
             return 0.0;
         }
         return (balance * (interestRate() / 100.0)) / 12.0;
     }
 
+    // Synchronized deposit method ensuring thread-safe atomic updates
     @Override
-    public void deposit(long amount) throws InvalidAmountException {
+    public synchronized void deposit(long amount) throws InvalidAmountException {
         if (amount <= 0) {
             throw new InvalidAmountException("Deposit amount must be positive. Provided: " + amount);
         }
         this.balance += amount;
     }
 
+    // Unsynchronized deposit for explicitly demonstrating the race condition (Practical 9 Part B)
+    public void depositUnsafe(long amount) {
+        if (amount > 0) {
+            // Read-Modify-Write non-atomic race window
+            long temp = this.balance;
+            try {
+                // Micro-pause to trigger thread preemption and race condition
+                Thread.sleep(0, 50);
+            } catch (InterruptedException ignored) {}
+            this.balance = temp + amount;
+        }
+    }
+
+    // Synchronized withdraw method
     @Override
-    public void withdraw(long amount) throws InsufficientFundsException, InvalidAmountException, BankException {
+    public synchronized void withdraw(long amount) throws InsufficientFundsException, InvalidAmountException, BankException {
         if (amount <= 0) {
             throw new InvalidAmountException("Withdrawal amount must be positive. Provided: " + amount);
         }
@@ -78,9 +93,14 @@ public abstract class Account implements Transactable, InterestBearing {
         this.balance -= amount;
     }
 
-    // Protected helper for subclasses to update balance after validation
-    protected void adjustBalance(long delta) {
+    // Protected helper for subclasses to update balance with synchronization
+    protected synchronized void adjustBalance(long delta) {
         this.balance += delta;
+    }
+
+    // Reset balance helper for test suites
+    public synchronized void setBalance(long balance) {
+        this.balance = balance;
     }
 
     // Transfer method using try-catch-finally and re-throwing BankException
@@ -115,7 +135,7 @@ public abstract class Account implements Transactable, InterestBearing {
     public String getAccountNumber() { return accountNumber; }
     public String getOwnerName() { return ownerName; }
     @Override
-    public long getBalance() { return balance; }
+    public synchronized long getBalance() { return balance; }
     public boolean isActive() { return active; }
 
     public void setOwnerName(String ownerName) {

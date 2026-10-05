@@ -32,7 +32,7 @@ public class SavingsAccount extends Account implements Premium {
     }
 
     @Override
-    public void withdraw(long amount) throws InsufficientFundsException, InvalidAmountException, BankException {
+    public synchronized void withdraw(long amount) throws InsufficientFundsException, InvalidAmountException, BankException {
         if (amount <= 0) {
             throw new InvalidAmountException("Withdrawal amount must be positive. Provided: " + amount);
         }

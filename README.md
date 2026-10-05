@@ -1,6 +1,6 @@
 # OOP Lab Practical Portfolio — Semester Work
 
-This repository contains the complete Java solutions for **Practical 1** through **Practical 8**, organized into practice programs and the modular, fault-tolerant **MiniBank** project (Milestone 1).
+This repository contains the complete Java solutions for **Practical 1** through **Practical 9**, organized into practice programs and the modular, concurrent, thread-safe **MiniBank** project.
 
 ---
 
@@ -16,49 +16,44 @@ A.lab practical/
 ├── lab-06/                  (Practical 6 — Practice Programs)
 ├── lab-07/                  (Practical 7 — Practice Programs)
 ├── lab-08/                  (Practical 8 — Practice Programs)
-│   ├── calculator/          (Part A1: Guarded Calculator with DivideByZeroException & try-finally)
-│   │   ├── DivideByZeroException.java
-│   │   ├── Calculator.java
-│   │   └── CalculatorDriver.java
-│   ├── warehouse/           (Part A2: Inventory System with OutOfStockException & Shortfall)
-│   │   ├── OutOfStockException.java
-│   │   ├── InvalidQuantityException.java
-│   │   ├── Warehouse.java
-│   │   └── WarehouseDriver.java
-│   └── resource/            (Part A3: AutoCloseable Resource & Try-With-Resources)
-│       ├── DatabaseConnection.java
-│       └── ResourceDriver.java
-├── exception/               (Practical 8 — Custom Checked Exception Hierarchy)
-│   ├── BankException.java   (Base checked exception extending Exception)
-│   ├── InsufficientFundsException.java (Carries shortfall field & getter)
-│   ├── AccountNotFoundException.java (Thrown when account query fails)
-│   ├── InvalidAmountException.java (Thrown for non-positive transaction amounts)
-│   └── DailyLimitExceededException.java (Supplementary: Daily withdrawal cap violation)
+├── lab-09/                  (Practical 9 — Practice Programs)
+│   ├── counter/             (Part A1: Counter Race Condition & Synchronized Fix)
+│   │   ├── Counter.java
+│   │   └── CounterDriver.java
+│   ├── seatbooking/         (Part A2: Cinema Seat Booking Race & Oversell Prevention)
+│   │   ├── SeatManager.java
+│   │   └── SeatBookingDriver.java
+│   └── arraysum/            (Part A3: Parallel Array Sum Benchmark & Local Reduction)
+│       └── ArraySumDriver.java
+├── exception/               (Custom Checked Exception Hierarchy)
+│   ├── BankException.java
+│   ├── InsufficientFundsException.java
+│   ├── AccountNotFoundException.java
+│   ├── InvalidAmountException.java
+│   └── DailyLimitExceededException.java
 ├── model/                   (Domain Entities)
-│   ├── annotation/          (Practical 7 — Metadata Annotations)
+│   ├── annotation/
 │   │   ├── Id.java
 │   │   ├── Positive.java
 │   │   └── MaxLength.java
-│   ├── Account.java         (Fault-tolerant withdraw/deposit/transfer with throws)
-│   ├── SavingsAccount.java  (Extends Account with minBalance shortfall calculations)
-│   ├── CurrentAccount.java  (Extends Account with overdraft shortfall calculations)
-│   ├── FixedDepositAccount.java (Extends Account with lock-in exception handling)
-│   ├── Customer.java        (Customer Record with Address & Cloneable)
-│   ├── BankInfo.java        (Record for Bank Branch Details)
-│   ├── TransactionType.java (Enum for Transaction Types)
-│   └── Command.java         (Record for Banking Commands)
-├── service/                 (Core Capabilities & Rules)
-│   ├── Transactable.java    (deposit/withdraw contracts declaring exceptions)
-│   ├── InterestBearing.java (interestRate + default yearlyInterest & projectedBalance)
-│   ├── WithdrawRule.java    (@FunctionalInterface for withdrawal validation)
-│   ├── Premium.java         (Marker Interface for VIP Accounts)
-│   └── BankingSession.java  (Practical 8 — AutoCloseable transactional session)
+│   ├── Account.java         (Thread-safe synchronized deposit/withdraw & balance access)
+│   ├── SavingsAccount.java  (Thread-safe savings account)
+│   ├── CurrentAccount.java  (Thread-safe current account)
+│   ├── FixedDepositAccount.java (Thread-safe fixed deposit account)
+│   └── ...
+├── service/                 (Core Capabilities & Concurrency Workers)
+│   ├── AccountWorker.java   (Practical 9 — Multi-threaded Account Worker Runnable)
+│   ├── Transactable.java
+│   ├── InterestBearing.java
+│   ├── WithdrawRule.java
+│   ├── Premium.java
+│   └── BankingSession.java
 ├── util/                    (Utilities & Reflection Helpers)
-│   ├── AnnotationValidator.java (Reflection-based Validator)
-│   ├── Validator.java       (Regex Verification Methods)
-│   ├── StatementFormatter.java (Account Statement Builder)
-│   └── CommandParser.java   (Command Line Parser)
-├── MiniBank.java            (Milestone 1 Main Application with Structured Exception Handling)
+│   ├── AnnotationValidator.java
+│   ├── Validator.java
+│   ├── StatementFormatter.java
+│   └── CommandParser.java
+├── MiniBank.java            (Main Banking Shell with Concurrency Race & Fix Demonstration)
 ├── MANIFEST.MF              (JAR Manifest specifying Main-Class: MiniBank)
 ├── minibank.jar             (Packaged Runnable JAR Artifact)
 ├── .gitignore
@@ -73,7 +68,7 @@ Make sure you have JDK 17 or higher installed on your system. Run all commands f
 
 ### 1. Compiling MiniBank & All Packages into `bin/`
 ```powershell
-javac -d bin exception/*.java model/annotation/*.java service/*.java model/*.java util/*.java MiniBank.java lab-08/calculator/*.java lab-08/warehouse/*.java lab-08/resource/*.java
+javac -d bin exception/*.java model/annotation/*.java service/*.java model/*.java util/*.java MiniBank.java lab-09/counter/*.java lab-09/seatbooking/*.java lab-09/arraysum/*.java
 ```
 
 ### 2. Building the Runnable JAR (`minibank.jar`)
@@ -81,21 +76,21 @@ javac -d bin exception/*.java model/annotation/*.java service/*.java model/*.jav
 jar cfm minibank.jar MANIFEST.MF -C bin .
 ```
 
-### 3. Running Practical 8 Practice Programs
-* **Guarded Calculator (DivideByZeroException & Looped Recovery):**
+### 3. Running Practical 9 Practice Programs
+* **Counter Race (Lost Updates vs Synchronized Fix):**
   ```powershell
-  java -cp bin calculator.CalculatorDriver
+  java -cp bin counter.CounterDriver
   ```
-* **Warehouse Stock (OutOfStockException with Shortfall):**
+* **Seat Booking Race (Check-Then-Act Oversell vs Synchronized):**
   ```powershell
-  java -cp bin warehouse.WarehouseDriver
+  java -cp bin seatbooking.SeatBookingDriver
   ```
-* **AutoCloseable Resource (Try-With-Resources Execution):**
+* **Parallel Array Sum (Benchmark & Local Reduction):**
   ```powershell
-  java -cp bin resource.ResourceDriver
+  java -cp bin arraysum.ArraySumDriver
   ```
 
-### 4. Running the MiniBank Runnable JAR (Milestone 1)
+### 4. Running the MiniBank Runnable JAR
 ```powershell
 java -jar minibank.jar
 ```
@@ -204,45 +199,61 @@ java -jar minibank.jar
 ### 💡 Practical 8 Questions
 
 #### 1. What is the difference between a checked and an unchecked exception?
-* **Checked Exceptions:** Subclasses of `java.lang.Exception` (excluding `RuntimeException`). The compiler forces the programmer to handle them using a `try-catch` block or declare them in the method signature using the `throws` keyword (e.g. `BankException`, `InsufficientFundsException`, `IOException`). Used for recoverable conditions that well-written applications must anticipate.
-* **Unchecked Exceptions:** Subclasses of `java.lang.RuntimeException` and `java.lang.Error`. The compiler does not enforce explicit handling or declarations (e.g. `NullPointerException`, `ArithmeticException`, `IllegalArgumentException`). Used for programming bugs or unrecoverable environmental failures.
+* **Checked Exceptions:** Subclasses of `java.lang.Exception` (excluding `RuntimeException`). The Java compiler strictly mandates that callers handle them with `try-catch` blocks or declare them using `throws` (e.g., `BankException`, `InsufficientFundsException`).
+* **Unchecked Exceptions:** Subclasses of `java.lang.RuntimeException` and `java.lang.Error`. The compiler does not enforce explicit handling or declarations (e.g., `NullPointerException`, `ArithmeticException`).
 
 #### 2. What is the purpose of the finally block, and when does it run?
-* **Purpose:** To execute essential cleanup code (such as releasing database connections, closing files, flushing audit logs, or completing transaction auditing) regardless of whether the try block completes normally or throws an exception.
-* **When It Runs:** The `finally` block **always** executes after the `try` block and any matching `catch` blocks finish, even if a `return`, `break`, `continue`, or unhandled exception occurs inside the `try` or `catch` block (the only exception being an explicit JVM termination via `System.exit()`).
+* **Purpose:** Ensures critical cleanup logic executes deterministically.
+* **When It Runs:** The `finally` block **always** executes after the `try` block and any executed `catch` blocks finish, even if an unhandled exception occurs or control leaves via `return`, `break`, or `continue`.
 
 #### 3. How does try-with-resources guarantee a resource is closed?
-* **Mechanism:** Any object whose class implements `java.lang.AutoCloseable` or `java.io.Closeable` can be instantiated inside the parentheses of a `try (...)` statement.
-* **Guarantee:** The Java compiler automatically generates synthetic bytecode that invokes `resource.close()` when exiting the try block (either on success or due to an exception). If an exception occurs inside the try block and `close()` also throws an exception, the original exception is preserved and thrown, while the exception from `close()` is attached as a *suppressed exception* (`getSuppressed()`).
+* **Mechanism:** The target resource implements `AutoCloseable`. The compiler generates synthetic bytecode ensuring `resource.close()` is invoked automatically upon exiting the block, attaching any secondary errors as suppressed exceptions (`getSuppressed()`).
+
+---
+
+### 💡 Practical 9 Questions
+
+#### 1. What is a race condition, and why does it occur here?
+* **Definition:** A race condition is a concurrency flaw that occurs when multiple threads concurrently read, modify, and write shared mutable memory without proper synchronization, making the final result dependent on non-deterministic thread scheduling order.
+* **Why it occurs in Account deposits:** An operation like `balance += amount` is **not atomic**. At the bytecode level, it involves three distinct steps:
+  1. `READ` the current balance into a CPU register.
+  2. `MODIFY` (add deposit amount to register).
+  3. `WRITE` the register value back to main memory.
+  When two or more threads interleave these steps simultaneously, thread B reads stale balance data before thread A writes its update, causing thread A's deposit to be completely overwritten (lost update anomaly).
+
+#### 2. What does the synchronized keyword do?
+* **Mutual Exclusion (Mutex):** When a method or block is marked `synchronized`, the executing thread must acquire the intrinsic lock (monitor) of the target object before entering. Only **one thread** can hold the monitor at any given moment; all other threads attempting to enter are put into the `BLOCKED` state until the lock is released.
+* **Memory Visibility (Happens-Before):** It establishes a *happens-before* memory barrier. Changes made by a thread before releasing the monitor are flushed to main memory and guaranteed to be visible to the next thread that acquires the same monitor.
+
+#### 3. What are the states in a thread’s life cycle?
+Java defines 6 distinct thread states in the `java.lang.Thread.State` enum:
+1. **`NEW`:** A thread instance has been created (via `new Thread()`) but not yet started (`start()` not called).
+2. **`RUNNABLE`:** The thread is actively executing or ready to run in the JVM waiting for operating system CPU allocation.
+3. **`BLOCKED`:** The thread is waiting to acquire a monitor lock to enter/re-enter a `synchronized` block or method.
+4. **`WAITING`:** The thread is waiting indefinitely for another thread to perform a specific action (e.g. via `Object.wait()`, `Thread.join()`, `LockSupport.park()`).
+5. **`TIMED_WAITING`:** The thread is waiting for another thread for up to a specified waiting time (e.g. `Thread.sleep(ms)`, `Object.wait(timeout)`, `Thread.join(timeout)`).
+6. **`TERMINATED`:** The thread has completed its `run()` method execution or died due to an unhandled exception.
 
 ---
 
 ## 🛠️ Implemented Features & Supplementary Solutions
 
-### Practical 8
-* **Part A1 — Guarded Calculator (`calculator` package):**
-  - Custom checked exception `DivideByZeroException`.
-  - Looped input retry mechanism catching `NumberFormatException`, `DivideByZeroException`, and `IllegalArgumentException` independently.
-  - Mandatory `finally` block recording an audit timestamp for every attempt.
-* **Part A2 — Warehouse Inventory (`warehouse` package):**
-  - Custom checked exception `OutOfStockException` holding shortfall count (`getShortfall()`).
-  - Custom checked exception `InvalidQuantityException`.
-  - Batch request processing with fault tolerance (continuous execution upon individual failures).
-* **Part A3 — AutoCloseable Resource (`resource` package):**
-  - `DatabaseConnection` implementing `AutoCloseable`.
-  - Verified that `close()` is invoked automatically both on success and when an unexpected error occurs within the block.
-* **Part B — MiniBank Fault-Tolerant Exception Hierarchy (Milestone 1):**
-  - `exception` package:
-    - `BankException`: Base checked exception.
-    - `InsufficientFundsException`: Stores `shortfall` amount with `getShortfall()`.
-    - `AccountNotFoundException`: Thrown when querying nonexistent account numbers.
-    - `InvalidAmountException`: Thrown when transaction amounts are $\le 0$.
-    - **Supplementary Problem 1:** `DailyLimitExceededException` thrown when withdrawal exceeds daily cap.
-  - Domain Model & Service Updates:
-    - `Transactable` declares `throws InvalidAmountException, InsufficientFundsException, BankException`.
-    - `Account.deposit()` throws `InvalidAmountException` for negative or zero amounts.
-    - `Account.withdraw()` computes explicit shortfall amounts and throws `InsufficientFundsException`.
-    - `Account.transfer()` wraps operations in `try-catch-finally`, executes rollback on destination failures, and re-throws `BankException`.
-  - `service.BankingSession`: AutoCloseable session for transactional audit logging.
-  - Interactive Shell:
-    - All banking menu operations (Deposit, Withdraw, Transfer, Statement, Validate) run inside structured `try-catch` blocks, providing clear user feedback without application crashes.
+### Practical 9
+* **Part A1 — Counter Race (`counter` package):**
+  - Unsynchronized counter demonstrates lost updates ($10 \times 10,000 \rightarrow \sim 37,000$ final count).
+  - Synchronized counter guarantees exact $100,000$ count.
+* **Part A2 — Cinema Seat Booking Race (`seatbooking` package):**
+  - Unsynchronized booking triggers a check-then-act race condition causing overselling (10 tickets sold for 5 seats).
+  - Synchronized booking guarantees exactly 5 bookings succeed and remaining 5 requests are rejected.
+* **Part A3 — Parallel Array Sum (`arraysum` package):**
+  - Parallel array reduction across $1,000,000$ numbers.
+  - Compares unsynchronized sum (wrong sum), shared synchronized lock (correct, high lock contention), and thread-local partial sum reduction (fastest throughput, lock-free).
+* **Part B — MiniBank Multi-threaded Concurrency & Synchronization:**
+  - `service.AccountWorker`: `Runnable` task executing bulk deposits or withdrawals across concurrent threads.
+  - `model.Account`: `synchronized` deposit and withdraw methods ensuring thread-safe balance operations.
+  - `MiniBank.java` Test Runs:
+    - Step 1: 10 threads running 1,000 deposits of Rs. 1 on unsynchronized mode yields an incorrect balance ($< 10,000$).
+    - Step 2: 10 threads running 1,000 deposits of Rs. 1 on synchronized mode guarantees **exactly Rs. 10,000**.
+    - Step 3 (Supplementary): 5 deposit threads (+Rs. 5,000) and 5 withdrawal threads (-Rs. 2,500) on initial Rs. 5,000 balance yields exactly Rs. 7,500.
+    - Step 4: Observed thread states transitions (`NEW` $\rightarrow$ `RUNNABLE` $\rightarrow$ `TERMINATED`).
+    - Step 5: Interactive menu option 7 for running live multithreading stress tests.
