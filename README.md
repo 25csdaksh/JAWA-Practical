@@ -1,6 +1,6 @@
 # OOP Lab Practical Portfolio — Semester Work
 
-This repository contains the complete Java solutions for **Practical 1** through **Practical 9**, organized into practice programs and the modular, concurrent, thread-safe **MiniBank** project.
+This repository contains the complete Java solutions for **Practical 1** through **Practical 10**, organized into practice programs and the modular, concurrent, thread-safe, and fault-tolerant **MiniBank** enterprise project.
 
 ---
 
@@ -17,14 +17,14 @@ A.lab practical/
 ├── lab-07/                  (Practical 7 — Practice Programs)
 ├── lab-08/                  (Practical 8 — Practice Programs)
 ├── lab-09/                  (Practical 9 — Practice Programs)
-│   ├── counter/             (Part A1: Counter Race Condition & Synchronized Fix)
-│   │   ├── Counter.java
-│   │   └── CounterDriver.java
-│   ├── seatbooking/         (Part A2: Cinema Seat Booking Race & Oversell Prevention)
-│   │   ├── SeatManager.java
-│   │   └── SeatBookingDriver.java
-│   └── arraysum/            (Part A3: Parallel Array Sum Benchmark & Local Reduction)
-│       └── ArraySumDriver.java
+├── lab-10/                  (Practical 10 — Practice Programs)
+│   ├── threadpool/          (Part A1: Fixed Thread Pool Executor & Thread Recycling)
+│   │   └── ThreadPoolDriver.java
+│   ├── producerconsumer/    (Part A2: Bounded Buffer with wait() and notify())
+│   │   ├── BoundedBuffer.java
+│   │   └── ProducerConsumerDriver.java
+│   └── deadlock/            (Part A3: Deadlock Reproduction & Consistent Lock Ordering Fix)
+│       └── DeadlockDriver.java
 ├── exception/               (Custom Checked Exception Hierarchy)
 │   ├── BankException.java
 │   ├── InsufficientFundsException.java
@@ -36,24 +36,24 @@ A.lab practical/
 │   │   ├── Id.java
 │   │   ├── Positive.java
 │   │   └── MaxLength.java
-│   ├── Account.java         (Thread-safe synchronized deposit/withdraw & balance access)
+│   ├── Account.java         (Thread-safe synchronized balance methods & annotations)
 │   ├── SavingsAccount.java  (Thread-safe savings account)
 │   ├── CurrentAccount.java  (Thread-safe current account)
 │   ├── FixedDepositAccount.java (Thread-safe fixed deposit account)
 │   └── ...
-├── service/                 (Core Capabilities & Concurrency Workers)
-│   ├── AccountWorker.java   (Practical 9 — Multi-threaded Account Worker Runnable)
-│   ├── Transactable.java
-│   ├── InterestBearing.java
-│   ├── WithdrawRule.java
-│   ├── Premium.java
-│   └── BankingSession.java
+├── service/                 (Core Capabilities, Processors & Coordination)
+│   ├── TransactionProcessor.java (Practical 10 — Managed Fixed Thread Pool Batch Engine)
+│   ├── TransactionBuffer.java    (Practical 10 — Bounded Producer-Consumer Transaction Queue)
+│   ├── TransferService.java      (Practical 10 — Deadlock-Free Safe Transfers via Lock Ordering)
+│   ├── AccountWorker.java   (Multi-threaded Runnable Worker)
+│   ├── BankingSession.java  (AutoCloseable Audit Session)
+│   └── ...
 ├── util/                    (Utilities & Reflection Helpers)
 │   ├── AnnotationValidator.java
 │   ├── Validator.java
 │   ├── StatementFormatter.java
 │   └── CommandParser.java
-├── MiniBank.java            (Main Banking Shell with Concurrency Race & Fix Demonstration)
+├── MiniBank.java            (Main Banking Shell with Thread Pool, Queue & Deadlock Demonstrations)
 ├── MANIFEST.MF              (JAR Manifest specifying Main-Class: MiniBank)
 ├── minibank.jar             (Packaged Runnable JAR Artifact)
 ├── .gitignore
@@ -68,7 +68,7 @@ Make sure you have JDK 17 or higher installed on your system. Run all commands f
 
 ### 1. Compiling MiniBank & All Packages into `bin/`
 ```powershell
-javac -d bin exception/*.java model/annotation/*.java service/*.java model/*.java util/*.java MiniBank.java lab-09/counter/*.java lab-09/seatbooking/*.java lab-09/arraysum/*.java
+javac -d bin exception/*.java model/annotation/*.java service/*.java model/*.java util/*.java MiniBank.java lab-10/threadpool/*.java lab-10/producerconsumer/*.java lab-10/deadlock/*.java
 ```
 
 ### 2. Building the Runnable JAR (`minibank.jar`)
@@ -76,18 +76,18 @@ javac -d bin exception/*.java model/annotation/*.java service/*.java model/*.jav
 jar cfm minibank.jar MANIFEST.MF -C bin .
 ```
 
-### 3. Running Practical 9 Practice Programs
-* **Counter Race (Lost Updates vs Synchronized Fix):**
+### 3. Running Practical 10 Practice Programs
+* **Thread Pool Runner (Fixed Thread Pool & Recycling):**
   ```powershell
-  java -cp bin counter.CounterDriver
+  java -cp bin threadpool.ThreadPoolDriver
   ```
-* **Seat Booking Race (Check-Then-Act Oversell vs Synchronized):**
+* **Producer-Consumer (wait / notify Coordination):**
   ```powershell
-  java -cp bin seatbooking.SeatBookingDriver
+  java -cp bin producerconsumer.ProducerConsumerDriver
   ```
-* **Parallel Array Sum (Benchmark & Local Reduction):**
+* **Deadlock Reproduction & Fix (Canonical Lock Ordering):**
   ```powershell
-  java -cp bin arraysum.ArraySumDriver
+  java -cp bin deadlock.DeadlockDriver
   ```
 
 ### 4. Running the MiniBank Runnable JAR
@@ -214,46 +214,61 @@ java -jar minibank.jar
 ### 💡 Practical 9 Questions
 
 #### 1. What is a race condition, and why does it occur here?
-* **Definition:** A race condition is a concurrency flaw that occurs when multiple threads concurrently read, modify, and write shared mutable memory without proper synchronization, making the final result dependent on non-deterministic thread scheduling order.
-* **Why it occurs in Account deposits:** An operation like `balance += amount` is **not atomic**. At the bytecode level, it involves three distinct steps:
-  1. `READ` the current balance into a CPU register.
-  2. `MODIFY` (add deposit amount to register).
-  3. `WRITE` the register value back to main memory.
-  When two or more threads interleave these steps simultaneously, thread B reads stale balance data before thread A writes its update, causing thread A's deposit to be completely overwritten (lost update anomaly).
+* Occurs when multiple threads interleave non-atomic read-modify-write sequences on shared mutable variables without synchronization, overwriting each other's updates (lost updates).
 
 #### 2. What does the synchronized keyword do?
-* **Mutual Exclusion (Mutex):** When a method or block is marked `synchronized`, the executing thread must acquire the intrinsic lock (monitor) of the target object before entering. Only **one thread** can hold the monitor at any given moment; all other threads attempting to enter are put into the `BLOCKED` state until the lock is released.
-* **Memory Visibility (Happens-Before):** It establishes a *happens-before* memory barrier. Changes made by a thread before releasing the monitor are flushed to main memory and guaranteed to be visible to the next thread that acquires the same monitor.
+* Enforces mutual exclusion (only one thread holds the object monitor at a time) and establishes memory visibility barriers (happens-before ordering).
 
 #### 3. What are the states in a thread’s life cycle?
-Java defines 6 distinct thread states in the `java.lang.Thread.State` enum:
-1. **`NEW`:** A thread instance has been created (via `new Thread()`) but not yet started (`start()` not called).
-2. **`RUNNABLE`:** The thread is actively executing or ready to run in the JVM waiting for operating system CPU allocation.
-3. **`BLOCKED`:** The thread is waiting to acquire a monitor lock to enter/re-enter a `synchronized` block or method.
-4. **`WAITING`:** The thread is waiting indefinitely for another thread to perform a specific action (e.g. via `Object.wait()`, `Thread.join()`, `LockSupport.park()`).
-5. **`TIMED_WAITING`:** The thread is waiting for another thread for up to a specified waiting time (e.g. `Thread.sleep(ms)`, `Object.wait(timeout)`, `Thread.join(timeout)`).
-6. **`TERMINATED`:** The thread has completed its `run()` method execution or died due to an unhandled exception.
+* `NEW`, `RUNNABLE`, `BLOCKED`, `WAITING`, `TIMED_WAITING`, `TERMINATED`.
+
+---
+
+### 💡 Practical 10 Questions
+
+#### 1. Why is a thread pool better than creating a new thread per task?
+* **Thread Creation Overhead:** Creating an OS-level thread requires significant CPU and memory allocation (e.g. allocating native thread stacks of ~1MB per thread). Destroying and re-creating threads continuously degrades performance.
+* **Thread Recycling:** A thread pool maintains a fixed set of reusable worker threads that process tasks from a shared work queue, virtually eliminating creation/destruction latency.
+* **Resource Throttling & Stability:** Caps the maximum number of concurrent threads, preventing server crashes caused by memory exhaustion (`OutOfMemoryError`) or CPU thrashing under high request loads.
+
+#### 2. How do wait() and notify() coordinate two threads?
+* **`wait()`:** Called inside a `synchronized` block/method. It causes the executing thread to release the object monitor lock immediately and enter the `WAITING` state, sleeping until another thread awakens it.
+* **`notify()` / `notifyAll()`:** Called inside a `synchronized` block/method by a producer or consumer. It awakens one (or all) threads waiting on that monitor. Once awakened, the waiting thread re-acquires the lock and resumes execution.
+* **Condition Loop (`while` check):** Always invoked inside a `while (condition)` loop to defend against spurious wakeups and ensure the condition holds true before proceeding.
+
+#### 3. What causes a deadlock, and how does consistent lock ordering prevent it?
+* **Cause (Coffman Conditions):** A deadlock occurs when two or more threads are permanently blocked because each holds a lock that the other needs (Circular Wait):
+  - Thread 1 locks Account A and waits for Account B.
+  - Thread 2 locks Account B and waits for Account A.
+* **Consistent Lock Ordering Prevention:** By establishing a strict, global lock acquisition hierarchy (e.g. always acquiring the lock on the account with the smaller `accountNumber` first: `min(accA, accB)` then `max(accA, accB)`), the circular wait condition is made mathematically impossible. Both threads will attempt to acquire Account A first, forcing Thread 2 to queue politely behind Thread 1.
 
 ---
 
 ## 🛠️ Implemented Features & Supplementary Solutions
 
-### Practical 9
-* **Part A1 — Counter Race (`counter` package):**
-  - Unsynchronized counter demonstrates lost updates ($10 \times 10,000 \rightarrow \sim 37,000$ final count).
-  - Synchronized counter guarantees exact $100,000$ count.
-* **Part A2 — Cinema Seat Booking Race (`seatbooking` package):**
-  - Unsynchronized booking triggers a check-then-act race condition causing overselling (10 tickets sold for 5 seats).
-  - Synchronized booking guarantees exactly 5 bookings succeed and remaining 5 requests are rejected.
-* **Part A3 — Parallel Array Sum (`arraysum` package):**
-  - Parallel array reduction across $1,000,000$ numbers.
-  - Compares unsynchronized sum (wrong sum), shared synchronized lock (correct, high lock contention), and thread-local partial sum reduction (fastest throughput, lock-free).
-* **Part B — MiniBank Multi-threaded Concurrency & Synchronization:**
-  - `service.AccountWorker`: `Runnable` task executing bulk deposits or withdrawals across concurrent threads.
-  - `model.Account`: `synchronized` deposit and withdraw methods ensuring thread-safe balance operations.
-  - `MiniBank.java` Test Runs:
-    - Step 1: 10 threads running 1,000 deposits of Rs. 1 on unsynchronized mode yields an incorrect balance ($< 10,000$).
-    - Step 2: 10 threads running 1,000 deposits of Rs. 1 on synchronized mode guarantees **exactly Rs. 10,000**.
-    - Step 3 (Supplementary): 5 deposit threads (+Rs. 5,000) and 5 withdrawal threads (-Rs. 2,500) on initial Rs. 5,000 balance yields exactly Rs. 7,500.
-    - Step 4: Observed thread states transitions (`NEW` $\rightarrow$ `RUNNABLE` $\rightarrow$ `TERMINATED`).
-    - Step 5: Interactive menu option 7 for running live multithreading stress tests.
+### Practical 10
+* **Part A1 — Thread-Pool Runner (`threadpool` package):**
+  - Managed `ExecutorService` fixed pool with 3 worker threads executing 10 asynchronous tasks.
+  - Recorded thread recycling metrics demonstrating that 3 threads execute all 10 tasks.
+* **Part A2 — Producer-Consumer Buffer (`producerconsumer` package):**
+  - Circular bounded buffer `BoundedBuffer` coordinated using `synchronized`, `wait()`, and `notifyAll()`.
+  - Producer and Consumer threads process 12 ordered items with 0 loss and FIFO integrity.
+* **Part A3 — Deadlock Reproduction & Lock Ordering Fix (`deadlock` package):**
+  - Demonstrated circular wait deadlock between two threads locking resources in opposite order.
+  - Demonstrated canonical ID-based lock ordering eliminating deadlocks completely.
+* **Part B — MiniBank Batch Transaction Engine & Safe Transfers:**
+  - `service.TransactionProcessor`:
+    - Fixed thread pool of 4 workers submitting concurrent transaction tasks.
+    - Graceful shutdown via `stop()` with `awaitTermination`.
+    - **Supplementary Problem 1:** Tracks and prints task execution metrics for every worker thread.
+  - `service.TransactionBuffer`:
+    - Producer-Consumer bounded queue coordinating transaction ingestion and worker execution using `wait()`/`notify()`.
+  - `service.TransferService`:
+    - `transferDeadlockProne`: Reproduces the A $\leftrightarrow$ B reverse locking deadlock.
+    - `transferSafe`: Implements consistent lower-account-number-first locking (`compareTo()`) to guarantee deadlock-free execution.
+    - **Supplementary Problem 2:** Measures transfer duration and logs warnings for long-running transfers.
+  - `MiniBank.java` Test Suite:
+    - Demonstrates managed thread pool execution (12 tasks across 4 threads).
+    - Demonstrates producer-consumer queue processing 6 transactions smoothly.
+    - Demonstrates deadlock detection and safe transfer verification.
+    - Interactive menu option 7 for running thread pool batch benchmarks.

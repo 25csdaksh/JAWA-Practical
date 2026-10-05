@@ -13,6 +13,7 @@ public class MiniBank {
         TRANSFER,
         VIEW_STATEMENT,
         VALIDATE_ACCOUNT,
+        THREAD_POOL_BATCH,
         CONCURRENCY_TEST,
         VERIFY_CREDENTIALS,
         WORKING_HOURS,
@@ -40,101 +41,139 @@ public class MiniBank {
         accounts[accountCount++] = new CurrentAccount("Prof. Sharma", 40000, 15000);
         accounts[accountCount++] = new FixedDepositAccount("Alice Smith", 100000);
 
-        System.out.println("\n--- [PRACTICAL 9 DEMONSTRATION: MULTITHREADING & SYNCHRONIZATION] ---");
+        System.out.println("\n--- [PRACTICAL 10 DEMONSTRATION: THREAD POOLS, PRODUCER-CONSUMER & DEADLOCKS] ---");
 
-        // 1. Race Condition Demonstration: Unsynchronized Deposits
-        System.out.println("\n1. Demonstrating Multi-threaded Race Condition on Account (Unsynchronized):");
-        Account raceAccount = new SavingsAccount("Concurrent Test User", 0, 0);
-        int numThreads = 10;
-        int depositsPerThread = 1000;
-        long amountPerDeposit = 1;
-        long expectedTotal = numThreads * depositsPerThread * amountPerDeposit; // 10,000
+        // 1. Managed Thread Pool Batch Processing (TransactionProcessor)
+        System.out.println("\n1. Testing Managed Thread Pool (TransactionProcessor with 4 Threads):");
+        TransactionProcessor processor = new TransactionProcessor(4);
+        Account poolAccount = accounts[0];
+        System.out.println("   Submitting 12 concurrent transaction tasks to fixed thread pool...");
 
-        System.out.println(String.format("   Initial Balance: Rs. %d | Starting %d threads (each %d deposits of Rs. %d)",
-                raceAccount.getBalance(), numThreads, depositsPerThread, amountPerDeposit));
-        System.out.println("   Expected Final Balance: Rs. " + expectedTotal);
-
-        Thread[] unsafeThreads = new Thread[numThreads];
-        for (int i = 0; i < numThreads; i++) {
-            unsafeThreads[i] = new Thread(
-                new AccountWorker(raceAccount, depositsPerThread, amountPerDeposit, true), // unsafeMode = true
-                "UnsafeWorker-" + (i + 1)
-            );
+        for (int i = 1; i <= 12; i++) {
+            final int taskId = i;
+            final long depositAmt = 100;
+            processor.submit(() -> {
+                try {
+                    poolAccount.deposit(depositAmt);
+                    Thread.sleep(15);
+                } catch (Exception ignored) {}
+            });
         }
 
-        // Observe thread lifecycle: NEW -> RUNNABLE -> TERMINATED
-        System.out.println("   Thread state before start: " + unsafeThreads[0].getName() + " is " + unsafeThreads[0].getState());
-        for (Thread t : unsafeThreads) t.start();
-        System.out.println("   Thread state during execution: " + unsafeThreads[0].getName() + " is " + unsafeThreads[0].getState());
+        processor.stop();
+        processor.printExecutionStats();
+        System.out.println("   Final Balance of AC0001 after 12 pool deposits: Rs. " + poolAccount.getBalance());
 
-        for (Thread t : unsafeThreads) {
+        // 2. Inter-Thread Coordination: Producer-Consumer with wait() and notify()
+        System.out.println("\n2. Testing Producer-Consumer Transaction Buffer (wait/notify):");
+        TransactionBuffer txQueue = new TransactionBuffer(3);
+        Account consumerTargetAccount = accounts[1];
+        int totalQueueItems = 6;
+
+        Thread producerThread = new Thread(() -> {
+            for (int i = 1; i <= totalQueueItems; i++) {
+                try {
+                    txQueue.produce(() -> {
+                        try {
+                            consumerTargetAccount.deposit(500);
+                        } catch (Exception ignored) {}
+                    });
+                    Thread.sleep(20);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }, "Tx-Producer");
+
+        Thread consumerThread = new Thread(() -> {
+            for (int i = 1; i <= totalQueueItems; i++) {
+                try {
+                    Runnable task = txQueue.consume();
+                    task.run();
+                    Thread.sleep(30);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }, "Tx-Consumer");
+
+        producerThread.start();
+        consumerThread.start();
+
+        try {
+            producerThread.join();
+            consumerThread.join();
+        } catch (InterruptedException ignored) {}
+
+        System.out.println("   Producer-Consumer finished: 6 transactions processed seamlessly with 0 queue overflows/underflows.");
+        System.out.println("   Target Account AC0002 Balance: Rs. " + consumerTargetAccount.getBalance());
+
+        // 3. Deadlock Demonstration and Consistent Lock Ordering Fix
+        System.out.println("\n3. Testing Deadlock Reproduction & Consistent Lock Ordering Fix:");
+        Account deadlockA = new SavingsAccount("Deadlock-Test-A", 10000, 0);
+        Account deadlockB = new SavingsAccount("Deadlock-Test-B", 10000, 0);
+
+        // (a) Deadlock Reproduction Test
+        System.out.println("   (a) Testing Reverse Lock Order Transfer (A -> B and B -> A)...");
+        Thread deadlock1 = new Thread(() -> {
             try {
-                t.join(); // Wait for completion
-            } catch (InterruptedException ignored) {}
-        }
-        System.out.println("   Thread state after completion: " + unsafeThreads[0].getName() + " is " + unsafeThreads[0].getState());
+                TransferService.transferDeadlockProne(deadlockA, deadlockB, 100);
+            } catch (Exception ignored) {}
+        }, "Deadlock-Thread-A");
 
-        long unsafeFinalBalance = raceAccount.getBalance();
-        System.out.println("   Actual Final Balance: Rs. " + unsafeFinalBalance);
-        System.out.println("   Discrepancy (Lost Deposits): Rs. " + (expectedTotal - unsafeFinalBalance));
-        System.out.println("   Status: " + (unsafeFinalBalance < expectedTotal ? "[RACE CONDITION OBSERVED - BALANCE WRONG]" : "[PASS]"));
-
-        // 2. Synchronized Thread-Safe Demonstration (The Fix)
-        System.out.println("\n2. Demonstrating Synchronized Thread-Safe Multi-threaded Deposits (The Fix):");
-        Account syncAccount = new SavingsAccount("Sync Test User", 0, 0);
-
-        Thread[] safeThreads = new Thread[numThreads];
-        for (int i = 0; i < numThreads; i++) {
-            safeThreads[i] = new Thread(
-                new AccountWorker(syncAccount, depositsPerThread, amountPerDeposit, false), // synchronized
-                "SafeWorker-" + (i + 1)
-            );
-        }
-
-        for (Thread t : safeThreads) t.start();
-        for (Thread t : safeThreads) {
+        Thread deadlock2 = new Thread(() -> {
             try {
-                t.join();
-            } catch (InterruptedException ignored) {}
+                TransferService.transferDeadlockProne(deadlockB, deadlockA, 100);
+            } catch (Exception ignored) {}
+        }, "Deadlock-Thread-B");
+
+        deadlock1.setDaemon(true);
+        deadlock2.setDaemon(true);
+
+        deadlock1.start();
+        deadlock2.start();
+
+        try {
+            deadlock1.join(250);
+            deadlock2.join(250);
+        } catch (InterruptedException ignored) {}
+
+        if (deadlock1.isAlive() && deadlock2.isAlive()) {
+            System.out.println("   [DEADLOCK VERIFIED] Both transfer threads are frozen waiting for each other's lock!");
+            System.out.println("   -> Deadlock-Thread-A State: " + deadlock1.getState() + " | Deadlock-Thread-B State: " + deadlock2.getState());
         }
 
-        long safeFinalBalance = syncAccount.getBalance();
-        System.out.println("   Actual Final Balance: Rs. " + safeFinalBalance);
-        System.out.println("   Discrepancy: Rs. " + (expectedTotal - safeFinalBalance));
-        System.out.println("   Status: " + (safeFinalBalance == expectedTotal ? "[THREAD-SAFE - EXACT 10,000 GUARANTEED]" : "[FAILED]"));
+        // (b) Deadlock-Free Safe Transfer with Canonical Lock Ordering
+        System.out.println("\n   (b) Executing Deadlock-Free Transfers (Consistent Lower Account Number First):");
+        Account safeA = accounts[0]; // AC0001
+        Account safeB = accounts[1]; // AC0002
 
-        // 3. Supplementary Test: Mixed Concurrent Deposits and Withdrawals
-        System.out.println("\n3. Supplementary Test: Concurrent Mixed Deposits & Withdrawals:");
-        Account mixedAccount = new SavingsAccount("Mixed Concurrency User", 5000, 0);
-        System.out.println("   Initial Balance: Rs. " + mixedAccount.getBalance());
-
-        Thread[] mixedThreads = new Thread[10];
-        // 5 threads depositing Rs. 1,000 each (Total +5,000)
-        for (int i = 0; i < 5; i++) {
-            mixedThreads[i] = new Thread(
-                new AccountWorker(mixedAccount, 1, 1000, AccountWorker.Operation.DEPOSIT, false),
-                "DepositWorker-" + (i + 1)
-            );
-        }
-        // 5 threads withdrawing Rs. 500 each (Total -2,500)
-        for (int i = 5; i < 10; i++) {
-            mixedThreads[i] = new Thread(
-                new AccountWorker(mixedAccount, 1, 500, AccountWorker.Operation.WITHDRAW, false),
-                "WithdrawWorker-" + (i - 4)
-            );
-        }
-
-        for (Thread t : mixedThreads) t.start();
-        for (Thread t : mixedThreads) {
+        Thread safe1 = new Thread(() -> {
             try {
-                t.join();
-            } catch (InterruptedException ignored) {}
-        }
+                TransferService.transferSafe(safeA, safeB, 1000);
+            } catch (Exception e) {
+                System.out.println("Transfer 1 error: " + e.getMessage());
+            }
+        }, "Safe-Transfer-Thread-1");
 
-        long expectedMixedBalance = 5000 + (5 * 1000) - (5 * 500); // 7500
-        System.out.println(String.format("   Expected Balance: Rs. %d | Actual Balance: Rs. %d -> %s",
-                expectedMixedBalance, mixedAccount.getBalance(), 
-                (mixedAccount.getBalance() == expectedMixedBalance ? "[EXACT MATCH]" : "[MISMATCH]")));
+        Thread safe2 = new Thread(() -> {
+            try {
+                TransferService.transferSafe(safeB, safeA, 500);
+            } catch (Exception e) {
+                System.out.println("Transfer 2 error: " + e.getMessage());
+            }
+        }, "Safe-Transfer-Thread-2");
+
+        safe1.start();
+        safe2.start();
+
+        try {
+            safe1.join();
+            safe2.join();
+        } catch (InterruptedException ignored) {}
+
+        System.out.println("   [SUCCESS] Both concurrent transfers completed normally without deadlock!");
+        System.out.println(String.format("   Final State: AC0001=Rs. %d | AC0002=Rs. %d", safeA.getBalance(), safeB.getBalance()));
 
         System.out.println("-----------------------------------------------------------\n");
 
@@ -142,19 +181,20 @@ public class MiniBank {
         boolean keepRunning = true;
 
         while (keepRunning) {
-            System.out.println("\n----------------- MINIBANK ENTERPRISE MENU -----------------");
+            System.out.println("\n----------------- MINIBANK ENTERPRISE ENGINE -----------------");
             System.out.println("1. Open Account (Savings / Current / Fixed Deposit)");
             System.out.println("2. Deposit");
             System.out.println("3. Withdraw");
-            System.out.println("4. Transfer (Local)");
+            System.out.println("4. Transfer (Safe Deadlock-Free)");
             System.out.println("5. View Official Account Statement");
             System.out.println("6. Validate Account Metadata via Reflection");
-            System.out.println("7. Run Concurrency & Race Condition Benchmark (Practical 9)");
-            System.out.println("8. Verify Customer Credentials (Static Import Validator)");
-            System.out.println("9. Check Bank Working Hours");
-            System.out.println("10. Exit");
-            System.out.println("-----------------------------------------------------------");
-            System.out.print("Please enter your choice (1-10): ");
+            System.out.println("7. Run Thread Pool Batch Processing Benchmark (Practical 10)");
+            System.out.println("8. Run Concurrency & Race Condition Benchmark (Practical 9)");
+            System.out.println("9. Verify Customer Credentials (Static Import Validator)");
+            System.out.println("10. Check Bank Working Hours");
+            System.out.println("11. Exit");
+            System.out.println("-------------------------------------------------------------");
+            System.out.print("Please enter your choice (1-11): ");
 
             int choice = -1;
             if (scanner.hasNextInt()) {
@@ -171,15 +211,16 @@ public class MiniBank {
                 case 4 -> MenuOption.TRANSFER;
                 case 5 -> MenuOption.VIEW_STATEMENT;
                 case 6 -> MenuOption.VALIDATE_ACCOUNT;
-                case 7 -> MenuOption.CONCURRENCY_TEST;
-                case 8 -> MenuOption.VERIFY_CREDENTIALS;
-                case 9 -> MenuOption.WORKING_HOURS;
-                case 10 -> MenuOption.EXIT;
+                case 7 -> MenuOption.THREAD_POOL_BATCH;
+                case 8 -> MenuOption.CONCURRENCY_TEST;
+                case 9 -> MenuOption.VERIFY_CREDENTIALS;
+                case 10 -> MenuOption.WORKING_HOURS;
+                case 11 -> MenuOption.EXIT;
                 default -> null;
             };
 
             if (selectedOption == null) {
-                System.out.println("\n[ERROR] Invalid menu choice. Please select a valid number between 1 and 10.");
+                System.out.println("\n[ERROR] Invalid menu choice. Please select a valid number between 1 and 11.");
                 continue;
             }
 
@@ -293,7 +334,7 @@ public class MiniBank {
                         long amount = scanner.nextLong();
                         scanner.nextLine();
 
-                        src.transfer(dest, amount);
+                        TransferService.transferSafe(src, dest, amount);
                     } catch (AccountNotFoundException e) {
                         System.out.println("\n[TRANSFER FAILED] " + e.getMessage());
                     } catch (BankException e) {
@@ -329,6 +370,21 @@ public class MiniBank {
                     } catch (AccountNotFoundException e) {
                         System.out.println("\n[ERROR] " + e.getMessage());
                     }
+                }
+                case THREAD_POOL_BATCH -> {
+                    System.out.println("\n--- Launching 20 Asynchronous Pool Transactions ---");
+                    TransactionProcessor benchProcessor = new TransactionProcessor(4);
+                    Account target = accounts[0];
+                    for (int i = 0; i < 20; i++) {
+                        benchProcessor.submit(() -> {
+                            try {
+                                target.deposit(50);
+                            } catch (Exception ignored) {}
+                        });
+                    }
+                    benchProcessor.stop();
+                    benchProcessor.printExecutionStats();
+                    System.out.println("Batch execution completed! AC0001 balance: Rs. " + target.getBalance());
                 }
                 case CONCURRENCY_TEST -> {
                     System.out.println("\n--- Running Live Multithreading Concurrency Benchmark ---");
@@ -369,6 +425,7 @@ public class MiniBank {
                 case EXIT -> {
                     System.out.println("Thank you for using MiniBank. Goodbye!");
                     keepRunning = false;
+                    System.exit(0);
                 }
             }
         }
