@@ -3,7 +3,6 @@ package leaderboard;
 import java.util.*;
 
 public class LeaderboardDemo {
-
     public static class PlayerScore {
         private final String playerName;
         private final int score;
@@ -22,11 +21,6 @@ public class LeaderboardDemo {
         }
     }
 
-    /**
-     * Extracts and returns the top-N players from the score map.
-     * Sorted primarily by score descending (highest first).
-     * Ties are broken secondarily by player name ascending (alphabetical).
-     */
     public static List<PlayerScore> getTopNPlayers(Map<String, Integer> scoreMap, int n) {
         if (scoreMap == null || scoreMap.isEmpty() || n <= 0) {
             return Collections.emptyList();
@@ -37,13 +31,12 @@ public class LeaderboardDemo {
             playerList.add(new PlayerScore(entry.getKey(), entry.getValue()));
         }
 
-        // Custom Comparator: score descending, then playerName ascending
         Comparator<PlayerScore> leaderboardComparator = (p1, p2) -> {
-            int scoreDiff = Integer.compare(p2.getScore(), p1.getScore()); // Descending
+            int scoreDiff = Integer.compare(p2.getScore(), p1.getScore());
             if (scoreDiff != 0) {
                 return scoreDiff;
             }
-            return p1.getPlayerName().compareToIgnoreCase(p2.getPlayerName()); // Ascending (tie-breaker)
+            return p1.getPlayerName().compareToIgnoreCase(p2.getPlayerName());
         };
 
         playerList.sort(leaderboardComparator);
@@ -79,36 +72,30 @@ public class LeaderboardDemo {
         System.out.println(" PRACTICAL 12 — PART A.3: LEADERBOARD SYSTEM (MAP & COMPARATOR)");
         System.out.println("=============================================================");
 
-        // 1. Initializing player score map (HashMap)
         Map<String, Integer> playerScores = new HashMap<>();
 
-        // Add scores including intentional ties to test tie-breaker logic
         playerScores.put("daksh_s", 3200);
-        playerScores.put("alice_wonder", 3200);   // Tied with daksh_s (3200) -> Alice should come first alphabetically
+        playerScores.put("alice_wonder", 3200);
         playerScores.put("bob_builder", 2800);
-        playerScores.put("charlie_b", 2800);     // Tied with bob_builder (2800) -> Bob should come first alphabetically
-        playerScores.put("david_c", 2800);       // 3-way tie at 2800 -> Charlie, then David
-        playerScores.put("eva_smith", 3500);     // Highest score -> Rank 1
+        playerScores.put("charlie_b", 2800);
+        playerScores.put("david_c", 2800);
+        playerScores.put("eva_smith", 3500);
         playerScores.put("frankie", 1950);
         playerScores.put("grace_hopper", 3100);
 
         System.out.println("Registered " + playerScores.size() + " players in score map.");
 
-        // 2. Display Top 5 Leaderboard
         displayLeaderboard("🏆 GLOBAL GAMING LEADERBOARD (TOP 5 PLAYERS)", playerScores, 5);
 
-        // 3. Demonstrate Dynamic Score Updates & Tie Resolution
         System.out.println(">>> EVENT: Daksh scores 300 bonus points! Upgrading daksh_s to 3500 points...");
-        playerScores.merge("daksh_s", 300, Integer::sum); // Updated to 3500 (now tied with eva_smith!)
+        playerScores.merge("daksh_s", 300, Integer::sum);
 
         System.out.println(">>> EVENT: Grace Hopper completes speedrun! Upgrading grace_hopper to 3400 points...");
         playerScores.put("grace_hopper", 3400);
 
-        // 4. Display Updated Top 5 Leaderboard
         displayLeaderboard("🏆 UPDATED GLOBAL LEADERBOARD (POST BONUS ROUND)", playerScores, 5);
 
         System.out.println("Leaderboard tie-breaking logic successfully verified!");
         System.out.println("=============================================================\n");
     }
 }
-

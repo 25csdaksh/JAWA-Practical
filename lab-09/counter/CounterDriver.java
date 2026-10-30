@@ -13,7 +13,6 @@ public class CounterDriver {
         System.out.println("Expected Final Count: " + EXPECTED_TOTAL);
         System.out.println("-------------------------------------------------");
 
-        // 1. Unsynchronized Counter Test (Race Condition Demonstration)
         Counter unsafeCounter = new Counter();
         Thread[] unsafeThreads = new Thread[NUM_THREADS];
 
@@ -27,14 +26,13 @@ public class CounterDriver {
 
         System.out.println("\n--- [1. Running Unsynchronized Counter (Race Condition)] ---");
         for (Thread t : unsafeThreads) t.start();
-        for (Thread t : unsafeThreads) t.join(); // Wait for all threads to complete
+        for (Thread t : unsafeThreads) t.join();
 
         int unsafeResult = unsafeCounter.getCount();
         System.out.println("Actual Result   : " + unsafeResult);
         System.out.println("Discrepancy     : " + (EXPECTED_TOTAL - unsafeResult) + " lost increments!");
         System.out.println("Conclusion      : " + (unsafeResult < EXPECTED_TOTAL ? "[RACE CONDITION DETECTED]" : "[PASS]"));
 
-        // 2. Synchronized Counter Test (Thread-Safe Synchronization)
         Counter safeCounter = new Counter();
         Thread[] safeThreads = new Thread[NUM_THREADS];
 

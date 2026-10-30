@@ -16,7 +16,7 @@ public class SavingsAccount extends Account implements Premium {
     }
 
     public SavingsAccount(String ownerName, long balance) {
-        this(ownerName, balance, 500); // Default minimum balance: Rs. 500
+        this(ownerName, balance, 500);
     }
 
     public long getMinBalance() {
@@ -41,7 +41,7 @@ public class SavingsAccount extends Account implements Premium {
         if ((getBalance() - amount) < minBalance) {
             long shortfall = (minBalance + amount) - getBalance();
             throw new InsufficientFundsException(
-                String.format("Withdrawal failed: short by %d (Requires maintaining min balance Rs. %d)", 
+                String.format("Withdrawal failed: short by %d (Requires maintaining min balance Rs. %d)",
                         shortfall, minBalance),
                 shortfall
             );

@@ -8,18 +8,17 @@ public class UniqueVisitorsDemo {
         System.out.println(" PRACTICAL 12 — PART A.2: UNIQUE VISITORS (HASHSET & LINKEDHASHSET)");
         System.out.println("=============================================================");
 
-        // List of login events containing repeated usernames
         List<String> rawLogins = List.of(
             "daksh_s",
             "alice_wonder",
             "bob_builder",
-            "daksh_s",       // duplicate
+            "daksh_s",
             "charlie_brown",
-            "alice_wonder",  // duplicate
+            "alice_wonder",
             "david_copper",
-            "bob_builder",   // duplicate
+            "bob_builder",
             "eve_online",
-            "daksh_s",       // duplicate
+            "daksh_s",
             "frank_castle"
         );
 
@@ -29,21 +28,18 @@ public class UniqueVisitorsDemo {
         }
         System.out.println("Total Login Events Recorded: " + rawLogins.size());
 
-        // 1. Using HashSet for unique user deduplication and count
         Set<String> hashSet = new HashSet<>(rawLogins);
         System.out.println("\n--- [1. HashSet Evaluation (Unordered O(1) Membership)] ---");
         System.out.println("Unique User Count (via HashSet.size()): " + hashSet.size());
         System.out.println("HashSet Elements (order is unpredictable due to bucket hashing):");
         System.out.println("  " + hashSet);
 
-        // 2. Using LinkedHashSet to preserve first-seen chronological order
         Set<String> linkedHashSet = new LinkedHashSet<>(rawLogins);
         System.out.println("\n--- [2. LinkedHashSet Evaluation (Doubly-Linked First-Seen Order)] ---");
         System.out.println("Unique User Count (via LinkedHashSet.size()): " + linkedHashSet.size());
         System.out.println("LinkedHashSet Elements (guarantees exact first-seen sequence):");
         System.out.println("  " + linkedHashSet);
 
-        // 3. Extract and print the first three distinct visitors from the first-seen set
         System.out.println("\n--- [3. First Three Distinct Visitors] ---");
         List<String> firstSeenList = new ArrayList<>(linkedHashSet);
         int countToPrint = Math.min(3, firstSeenList.size());
@@ -51,7 +47,6 @@ public class UniqueVisitorsDemo {
             System.out.println(String.format(" %d. %s", i + 1, firstSeenList.get(i)));
         }
 
-        // Summary verification
         System.out.println("\nVerification Summary:");
         System.out.println(" - Total Raw Logins   : " + rawLogins.size());
         System.out.println(" - Unique Visitor Count: " + linkedHashSet.size());
@@ -59,4 +54,3 @@ public class UniqueVisitorsDemo {
         System.out.println("=============================================================\n");
     }
 }
-

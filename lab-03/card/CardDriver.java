@@ -7,7 +7,7 @@ public class CardDriver {
             new Card("King", "Diamonds"),
             new Card("Ace", "Spades"),
             new Card("Queen", "Hearts"),
-            new Card("Ace", "Spades"), // Duplicate!
+            new Card("Ace", "Spades"),
             new Card("Ten", "Clubs")
         };
 

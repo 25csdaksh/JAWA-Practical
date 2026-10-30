@@ -16,10 +16,8 @@ public class TemplateFiller {
             String key = matcher.group(1);
             String replacement = "[?]";
 
-            // Parallel lookup
             for (int i = 0; i < names.length; i++) {
                 if (names[i].equals(key)) {
-                    // Check if index is in bounds of values array
                     if (i < values.length) {
                         replacement = values[i];
                     }
@@ -27,7 +25,6 @@ public class TemplateFiller {
                 }
             }
 
-            // We must quote the replacement to prevent issues with special characters (like $ and \)
             matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
         }
         matcher.appendTail(sb);

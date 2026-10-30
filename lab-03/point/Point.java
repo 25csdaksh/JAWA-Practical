@@ -9,13 +9,11 @@ public class Point {
         this.y = y;
     }
 
-    // (b) Override toString() to return “(x, y)”
     @Override
     public String toString() {
         return "(" + x + ", " + y + ")";
     }
 
-    // (c) Override equals(Object) to be true when both x and y match
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -24,7 +22,6 @@ public class Point {
         return x == point.x && y == point.y;
     }
 
-    // Override hashCode() to agree with equals()
     @Override
     public int hashCode() {
         return Objects.hash(x, y);

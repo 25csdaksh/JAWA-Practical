@@ -1,14 +1,12 @@
 import java.util.Scanner;
 
 public class Thermostat {
-    // (a) Create class Thermostat with private fields
     private String location;
     private int temperature;
     private static final int MIN = 16;
     private static final int MAX = 30;
     private static int activeCount = 0;
 
-    // (b) Constructor(location, startTemp)
     public Thermostat(String location, int startTemp) {
         this.location = location;
         if (startTemp >= MIN && startTemp <= MAX) {
@@ -19,12 +17,10 @@ public class Thermostat {
         activeCount++;
     }
 
-    // (c) Constructor(location): chain with this(location, 22)
     public Thermostat(String location) {
         this(location, 22);
     }
 
-    // (d) raise(): if temperature < MAX add 1, else print “Already at maximum (30)”
     public void raise() {
         if (this.temperature < MAX) {
             this.temperature++;
@@ -33,7 +29,6 @@ public class Thermostat {
         }
     }
 
-    // (e) lower(): if temperature > MIN subtract 1, else print “Already at minimum (16)”
     public void lower() {
         if (this.temperature > MIN) {
             this.temperature--;
@@ -42,7 +37,6 @@ public class Thermostat {
         }
     }
 
-    // (f) Add getTemperature() and static getActiveCount()
     public int getTemperature() {
         return this.temperature;
     }
@@ -55,13 +49,11 @@ public class Thermostat {
         return activeCount;
     }
 
-    // (g) In main: create two thermostats, call raise() 10 times then lower() 20 times in loops...
     public static void main(String[] args) {
         System.out.println("--- Smart Thermostat Test ---");
-        
-        // Create two thermostats
+
         Thermostat t1 = new Thermostat("Living Room", 25);
-        Thermostat t2 = new Thermostat("Bed Room"); // Default to 22
+        Thermostat t2 = new Thermostat("Bed Room");
 
         System.out.println("Thermostat 1 (" + t1.getLocation() + ") starting temp: " + t1.getTemperature());
         System.out.println("Thermostat 2 (" + t2.getLocation() + ") starting temp: " + t2.getTemperature());

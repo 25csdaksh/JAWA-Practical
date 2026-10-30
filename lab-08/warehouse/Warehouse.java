@@ -31,7 +31,7 @@ public class Warehouse {
         }
 
         inventory.put(key, currentStock - qty);
-        System.out.println(String.format("[SUCCESS] Issued %d units of '%s'. Remaining stock: %d", 
+        System.out.println(String.format("[SUCCESS] Issued %d units of '%s'. Remaining stock: %d",
                 qty, item, inventory.get(key)));
     }
 }

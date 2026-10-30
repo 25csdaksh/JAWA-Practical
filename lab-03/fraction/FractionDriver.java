@@ -1,7 +1,7 @@
 public class FractionDriver {
     public static void main(String[] args) {
         System.out.println("Creating fractions 1/2, 2/4, and 3/6:");
-        
+
         Fraction f1 = new Fraction(1, 2);
         Fraction f2 = new Fraction(2, 4);
         Fraction f3 = new Fraction(3, 6);

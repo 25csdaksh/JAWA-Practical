@@ -16,7 +16,6 @@ public class TreeWalkerDemo {
         Path reportFilePath = Paths.get("folder_tree_report.txt");
 
         try {
-            // 1. Setup a nested folder tree with files for demonstration
             if (Files.exists(testRoot)) {
                 deleteRecursively(testRoot);
             }
@@ -32,7 +31,6 @@ public class TreeWalkerDemo {
 
             System.out.println("Created test directory hierarchy at: " + testRoot.toAbsolutePath());
 
-            // 2. Walk the directory tree using Files.walkFileTree and collect metadata
             List<String> reportLines = new ArrayList<>();
             reportLines.add("==========================================================================================");
             reportLines.add("                             DIRECTORY TREE AUDIT REPORT                                  ");
@@ -78,7 +76,6 @@ public class TreeWalkerDemo {
                     totalDirs[0], totalFiles[0], totalBytes[0]));
             reportLines.add("==========================================================================================");
 
-            // 3. Write report to output file
             try (BufferedWriter writer = Files.newBufferedWriter(reportFilePath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
                 for (String line : reportLines) {
                     writer.write(line);
@@ -92,7 +89,6 @@ public class TreeWalkerDemo {
                 System.out.println(line);
             }
 
-            // 4. Clean up test tree and report file
             deleteRecursively(testRoot);
             Files.deleteIfExists(reportFilePath);
             System.out.println("\nCleaned up sample tree folder and report file successfully.");

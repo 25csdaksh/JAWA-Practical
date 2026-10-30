@@ -28,7 +28,6 @@ public class ThreadPoolDriver {
 
                 System.out.println(String.format(" -> [TASK-%02d STARTED] on Thread '%s'", taskId, threadName));
                 try {
-                    // Simulate short work
                     Thread.sleep(60);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -37,7 +36,6 @@ public class ThreadPoolDriver {
             });
         }
 
-        // Graceful shutdown and await completion
         System.out.println("\nAll tasks submitted. Shutting down ExecutorService...");
         executor.shutdown();
 

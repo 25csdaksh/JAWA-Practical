@@ -14,7 +14,6 @@ public class LogAnalyzerDemo {
         String searchKeyword = "ERROR";
 
         try {
-            // 1. Create sample directory and write sample log files
             if (!Files.exists(logsDirectory)) {
                 Files.createDirectories(logsDirectory);
             }
@@ -52,11 +51,10 @@ public class LogAnalyzerDemo {
             long totalKeywordMatches = 0;
             int fileCount = 0;
 
-            // 2. Iterate through files using DirectoryStream and analyze with NIO Path/Files
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(logsDirectory, "*.log")) {
                 for (Path entry : stream) {
                     fileCount++;
-                    // Read file attributes using Files.readAttributes
+
                     BasicFileAttributes attrs = Files.readAttributes(entry, BasicFileAttributes.class);
                     long fileSize = attrs.size();
                     String lastModified = attrs.lastModifiedTime().toString();
@@ -69,7 +67,6 @@ public class LogAnalyzerDemo {
                     System.out.println(String.format(" -> Size: %d bytes | Last Modified: %s", fileSize, lastModified));
                     System.out.println(" -> Content Analysis:");
 
-                    // Read line by line with BufferedReader
                     try (BufferedReader reader = Files.newBufferedReader(entry)) {
                         String line;
                         int lineNo = 1;
@@ -90,7 +87,6 @@ public class LogAnalyzerDemo {
                 }
             }
 
-            // 3. Print overall aggregated statistics
             System.out.println("=================================================================");
             System.out.println("                       AGGREGATE ANALYSIS                        ");
             System.out.println("=================================================================");
@@ -99,7 +95,6 @@ public class LogAnalyzerDemo {
             System.out.println(String.format("Total '%s' Matches   : %d", searchKeyword, totalKeywordMatches));
             System.out.println("=================================================================");
 
-            // 4. Cleanup sample directory
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(logsDirectory)) {
                 for (Path entry : stream) {
                     Files.deleteIfExists(entry);

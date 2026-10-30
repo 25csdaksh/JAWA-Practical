@@ -7,7 +7,7 @@ public class StatementFormatter {
         if (account == null) {
             return "No account details to display.";
         }
-        
+
         StringBuilder sb = new StringBuilder();
         sb.append("----------------------------------------\n");
         sb.append("      MINIBANK OFFICIAL STATEMENT       \n");
@@ -20,7 +20,7 @@ public class StatementFormatter {
         sb.append("Annual Interest: Rs. ").append(String.format("%.2f", account.yearlyInterest())).append("\n");
         sb.append("Account Status : ").append(account.isActive() ? "ACTIVE" : "INACTIVE").append("\n");
         sb.append("----------------------------------------");
-        
+
         return sb.toString();
     }
 }

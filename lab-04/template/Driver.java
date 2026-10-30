@@ -12,7 +12,6 @@ public class Driver {
         String result = TemplateFiller.fill(template, names, values);
         System.out.println("Filled Result : " + result);
 
-        // Additional testing with more placeholders and values
         String template2 = "Hello {user}, your balance for account {acc_num} is Rs. {bal}. Thank you, {user}!";
         String[] names2 = {"user", "acc_num", "bal"};
         String[] values2 = {"Daksh Soni", "AC0001", "1000"};

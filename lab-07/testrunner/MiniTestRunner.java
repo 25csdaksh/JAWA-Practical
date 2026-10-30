@@ -19,16 +19,15 @@ public class MiniTestRunner {
             Method[] methods = testClass.getDeclaredMethods();
 
             for (Method method : methods) {
-                // Check if method is annotated with @Run
                 if (method.isAnnotationPresent(Run.class)) {
                     totalFound++;
                     Run annotation = method.getAnnotation(Run.class);
                     String desc = annotation.description().isEmpty() ? method.getName() : annotation.description();
-                    
+
                     System.out.println(String.format("[RUNNING] %s() - %s", method.getName(), desc));
                     method.setAccessible(true);
                     try {
-                        method.invoke(instance); // Execute the test method
+                        method.invoke(instance);
                         System.out.println("   ==> [PASSED]\n");
                         passed++;
                     } catch (InvocationTargetException e) {

@@ -19,7 +19,7 @@ public class ArraySumDriver {
         int[] numbers = new int[ARRAY_SIZE];
         long expectedSum = 0;
         for (int i = 0; i < ARRAY_SIZE; i++) {
-            numbers[i] = 1; // Array of 1,000,000 ones -> Expected sum = 1,000,000
+            numbers[i] = 1;
             expectedSum += numbers[i];
         }
 
@@ -28,7 +28,6 @@ public class ArraySumDriver {
 
         int chunkSize = ARRAY_SIZE / NUM_THREADS;
 
-        // 1. Unsynchronized Sum (Race Condition)
         unsafeTotal = 0;
         Thread[] unsafeThreads = new Thread[NUM_THREADS];
         long start1 = System.nanoTime();
@@ -37,7 +36,7 @@ public class ArraySumDriver {
             final int endIdx = (i == NUM_THREADS - 1) ? ARRAY_SIZE : (i + 1) * chunkSize;
             unsafeThreads[i] = new Thread(() -> {
                 for (int j = startIdx; j < endIdx; j++) {
-                    unsafeTotal += numbers[j]; // Race condition on shared variable
+                    unsafeTotal += numbers[j];
                 }
             });
             unsafeThreads[i].start();
@@ -49,7 +48,6 @@ public class ArraySumDriver {
         System.out.println(String.format("   Calculated Sum: %,d (Lost: %,d) | Time: %d ms | [WRONG RESULT]",
                 unsafeTotal, (expectedSum - unsafeTotal), time1));
 
-        // 2. Fix 1: Synchronized Block on Every Addition
         syncTotal = 0;
         Thread[] syncThreads = new Thread[NUM_THREADS];
         long start2 = System.nanoTime();
@@ -72,7 +70,6 @@ public class ArraySumDriver {
         System.out.println(String.format("   Calculated Sum: %,d | Time: %d ms | [CORRECT BUT LOCK CONTENTION]",
                 syncTotal, time2));
 
-        // 3. Fix 2: Thread-Local Chunk Sums (Fastest & Lock-Free)
         long[] localSums = new long[NUM_THREADS];
         Thread[] localThreads = new Thread[NUM_THREADS];
         long start3 = System.nanoTime();

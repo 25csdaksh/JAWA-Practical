@@ -12,21 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ReportGenerator {
-
-    /**
-     * Walks the logs folder using Files.newDirectoryStream, reads log files line by line,
-     * calculates total deposits, withdrawals and net change, inspects file attributes,
-     * and outputs a summary report to reportFile.
-     *
-     * Rules:
-     * - Skips files that do not end with .log
-     * - Skips files that are empty (size == 0 bytes)
-     *
-     * @param logsFolder Directory containing transaction log files
-     * @param reportFile Destination report file Path
-     * @return The formatted summary report text
-     * @throws IOException If an I/O error occurs
-     */
     public static String generateReport(Path logsFolder, Path reportFile) throws IOException {
         if (logsFolder == null || reportFile == null) {
             throw new IllegalArgumentException("Logs folder and report file paths must not be null.");
@@ -44,10 +29,8 @@ public class ReportGenerator {
 
         List<String> fileSummaries = new ArrayList<>();
 
-        // Walk directory entries using Files.newDirectoryStream
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(logsFolder)) {
             for (Path entry : stream) {
-                // Skip subdirectories
                 if (Files.isDirectory(entry)) {
                     skippedFilesCount++;
                     continue;
@@ -55,17 +38,14 @@ public class ReportGenerator {
 
                 String filename = entry.getFileName().toString();
 
-                // Supplementary Rule 1: Skip files that do not end with .log
                 if (!filename.toLowerCase().endsWith(".log")) {
                     skippedFilesCount++;
                     continue;
                 }
 
-                // Read attributes using Files.readAttributes
                 BasicFileAttributes attrs = Files.readAttributes(entry, BasicFileAttributes.class);
                 long fileSize = attrs.size();
 
-                // Supplementary Rule 2: Skip empty files
                 if (fileSize == 0) {
                     skippedFilesCount++;
                     continue;
@@ -76,7 +56,6 @@ public class ReportGenerator {
                 long fileWithdrawals = 0;
                 int fileTxCount = 0;
 
-                // Read line by line with BufferedReader in try-with-resources
                 try (BufferedReader reader = Files.newBufferedReader(entry, StandardCharsets.UTF_8)) {
                     String line;
                     while ((line = reader.readLine()) != null) {
@@ -85,7 +64,6 @@ public class ReportGenerator {
                             continue;
                         }
 
-                        // Parse log tokens (e.g. "DEPOSIT AC0001 500" or "[2026-10-05] DEPOSIT AC0001 500")
                         String[] tokens = line.split("\\s+");
                         int typeIdx = -1;
                         for (int i = 0; i < tokens.length; i++) {
@@ -109,7 +87,6 @@ public class ReportGenerator {
                                 }
                             } catch (NumberFormatException ignored) {}
                         } else if (tokens.length >= 3) {
-                            // Direct format: "DEPOSIT AC0001 500"
                             String type = tokens[0].toUpperCase();
                             try {
                                 long amount = Long.parseLong(tokens[2]);
@@ -163,13 +140,11 @@ public class ReportGenerator {
 
         String reportContent = sb.toString();
 
-        // Ensure parent directory for report file exists
         Path reportParent = reportFile.getParent();
         if (reportParent != null && !Files.exists(reportParent)) {
             Files.createDirectories(reportParent);
         }
 
-        // Write report to destination file
         try (BufferedWriter writer = Files.newBufferedWriter(reportFile, StandardCharsets.UTF_8,
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
             writer.write(reportContent);

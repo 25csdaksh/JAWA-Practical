@@ -1,12 +1,10 @@
 public class ParkingLot {
-    // (a) Create class ParkingLot with private fields
     private int twoWheelers;
     private int fourWheelers;
     private final int twoCap;
     private final int fourCap;
     private static long revenue = 0;
 
-    // Constructor to initialize capacities
     public ParkingLot(int twoCap, int fourCap) {
         this.twoCap = twoCap;
         this.fourCap = fourCap;
@@ -14,8 +12,6 @@ public class ParkingLot {
         this.fourWheelers = 0;
     }
 
-    // (b) park(String type): for “two”, if twoWheelers < twoCap increment and add 20 to revenue;
-    // for “four”, if fourWheelers < fourCap increment and add 40; otherwise print “Full” and reject.
     public boolean park(String type) {
         if (type.equalsIgnoreCase("two")) {
             if (this.twoWheelers < this.twoCap) {
@@ -43,7 +39,6 @@ public class ParkingLot {
         }
     }
 
-    // (c) leave(String type): decrement the matching count but never below 0.
     public void leave(String type) {
         if (type.equalsIgnoreCase("two")) {
             if (this.twoWheelers > 0) {
@@ -76,31 +71,26 @@ public class ParkingLot {
         return revenue;
     }
 
-    // (d) In main: simulate a sequence of park/leave events...
     public static void main(String[] args) {
         System.out.println("--- Parking Lot Simulator (Capacities: 2 Two-Wheelers, 1 Four-Wheeler) ---");
         ParkingLot lot = new ParkingLot(2, 1);
 
-        // Try to park two-wheelers
         System.out.println("\n--- Testing Two-Wheeler Parking ---");
         lot.park("two");
         lot.park("two");
-        lot.park("two"); // Should fail - Full
+        lot.park("two");
 
-        // Try to park four-wheelers
         System.out.println("\n--- Testing Four-Wheeler Parking ---");
         lot.park("four");
-        lot.park("four"); // Should fail - Full
+        lot.park("four");
 
-        // Vehicles leaving
         System.out.println("\n--- Testing Vehicles Leaving ---");
         lot.leave("two");
-        lot.park("two"); // Should succeed now
+        lot.park("two");
 
         lot.leave("four");
-        lot.leave("four"); // Underflow check
+        lot.leave("four");
 
-        // Final occupancy and revenue
         System.out.println("\n=================================");
         System.out.println("        PARKING LOT REPORT       ");
         System.out.println("=================================");

@@ -7,7 +7,7 @@ public class DVD extends MediaItem {
     }
 
     public DVD(String itemId, String title) {
-        this(itemId, title, 15.0); // DVDs have no grace period and Rs. 15/day
+        this(itemId, title, 15.0);
     }
 
     @Override

@@ -1,5 +1,4 @@
 public class MediaDriver {
-    // Record to hold returned media item and the overdue days
     record ReturnEntry(MediaItem item, int daysLate) {}
 
     public static void main(String[] args) {
@@ -8,12 +7,12 @@ public class MediaDriver {
         System.out.println("=================================================");
 
         ReturnEntry[] batch = new ReturnEntry[] {
-            new ReturnEntry(new Book("BK-101", "Effective Java (Joshua Bloch)"), 1), // within 2-day grace period
-            new ReturnEntry(new Book("BK-102", "Clean Architecture (Robert Martin)"), 5), // 5 - 2 = 3 days * 5 = 15
-            new ReturnEntry(new DVD("DVD-201", "Interstellar Collector's Edition"), 3), // 3 * 15 = 45
-            new ReturnEntry(new AudioBook("AB-301", "The Pragmatic Programmer Audiobook"), 4), // 4 * 8 = 32
-            new ReturnEntry(new Book("BK-103", "Algorithms (Sedgewick)"), 60), // capped at 250
-            new ReturnEntry(new DVD("DVD-202", "Oppenheimer 4K UHD"), 2) // 2 * 15 = 30
+            new ReturnEntry(new Book("BK-101", "Effective Java (Joshua Bloch)"), 1),
+            new ReturnEntry(new Book("BK-102", "Clean Architecture (Robert Martin)"), 5),
+            new ReturnEntry(new DVD("DVD-201", "Interstellar Collector's Edition"), 3),
+            new ReturnEntry(new AudioBook("AB-301", "The Pragmatic Programmer Audiobook"), 4),
+            new ReturnEntry(new Book("BK-103", "Algorithms (Sedgewick)"), 60),
+            new ReturnEntry(new DVD("DVD-202", "Oppenheimer 4K UHD"), 2)
         };
 
         double grandTotalFee = 0.0;
@@ -24,10 +23,10 @@ public class MediaDriver {
         for (ReturnEntry entry : batch) {
             MediaItem item = entry.item();
             int days = entry.daysLate();
-            double fee = item.computeLateFee(days); // Polymorphic late fee calculation
+            double fee = item.computeLateFee(days);
             grandTotalFee += fee;
 
-            System.out.println(String.format("%-8s | %-38s | %-10d | Rs. %-8.2f", 
+            System.out.println(String.format("%-8s | %-38s | %-10d | Rs. %-8.2f",
                 item.getItemId(), item.toString(), days, fee));
         }
 

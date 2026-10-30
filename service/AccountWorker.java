@@ -33,9 +33,6 @@ public class AccountWorker implements Runnable {
     @Override
     public void run() {
         String threadName = Thread.currentThread().getName();
-        // Observing thread lifecycle: RUNNING
-        // System.out.println(String.format("   [%s] Thread Started. Executing %d %s operations...", 
-        //         threadName, times, operation));
 
         for (int i = 0; i < times; i++) {
             try {
@@ -49,10 +46,8 @@ public class AccountWorker implements Runnable {
                     account.withdraw(amount);
                 }
             } catch (Exception e) {
-                // Ignore business rule exceptions during stress test
             }
         }
 
-        // Thread finishes its execution and enters TERMINATED state
     }
 }

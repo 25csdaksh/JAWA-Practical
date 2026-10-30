@@ -7,15 +7,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import model.Account;
 
-/**
- * Multi-threaded Transaction Processor engine.
- * Practical 12 Requirement 5: Uses a thread-safe ConcurrentHashMap for shared accounts.
- */
 public class TransactionProcessor {
     private final ExecutorService executor;
     private final ConcurrentHashMap<String, AtomicInteger> threadStats = new ConcurrentHashMap<>();
 
-    // Practical 12 Requirement 5: Thread-safe ConcurrentHashMap for shared accounts
     private final ConcurrentHashMap<String, Account> sharedAccounts = new ConcurrentHashMap<>();
 
     public TransactionProcessor(int poolSize) {
@@ -23,7 +18,7 @@ public class TransactionProcessor {
     }
 
     public TransactionProcessor() {
-        this(4); // Default 4 threads in fixed pool
+        this(4);
     }
 
     public TransactionProcessor(int poolSize, ConcurrentHashMap<String, Account> initialAccounts) {
@@ -33,33 +28,21 @@ public class TransactionProcessor {
         }
     }
 
-    /**
-     * Registers an account into the thread-safe ConcurrentHashMap.
-     */
     public void registerAccount(Account account) {
         if (account != null) {
             sharedAccounts.put(account.getAccountNumber(), account);
         }
     }
 
-    /**
-     * Retrieves an account safely from the ConcurrentHashMap.
-     */
     public Account getAccount(String accountNumber) {
         if (accountNumber == null) return null;
         return sharedAccounts.get(accountNumber.trim());
     }
 
-    /**
-     * Returns the thread-safe ConcurrentHashMap of shared accounts.
-     */
     public ConcurrentHashMap<String, Account> getSharedAccounts() {
         return sharedAccounts;
     }
 
-    /**
-     * Asynchronously submits a deposit transaction onto a shared account.
-     */
     public void submitDeposit(String accountNumber, long amount) {
         submit(() -> {
             Account acc = getAccount(accountNumber);
@@ -75,9 +58,6 @@ public class TransactionProcessor {
         });
     }
 
-    /**
-     * Asynchronously submits a withdrawal transaction onto a shared account.
-     */
     public void submitWithdraw(String accountNumber, long amount) {
         submit(() -> {
             Account acc = getAccount(accountNumber);
@@ -117,7 +97,6 @@ public class TransactionProcessor {
         }
     }
 
-    // Prints how many tasks each pool thread executed
     public void printExecutionStats() {
         System.out.println("\n--- [TRANSACTION PROCESSOR THREAD METRICS] ---");
         threadStats.forEach((tName, count) -> {

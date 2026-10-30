@@ -7,7 +7,6 @@ public class SeatBookingDriver {
         System.out.println("=================================================");
         System.out.println("Initial Seats Available: 5 | Concurrent Users Attempting: 10\n");
 
-        // 1. Unsynchronized Booking Race (Overselling Demonstration)
         System.out.println("--- [1. Unsynchronized Booking (Check-Then-Act Race Condition)] ---");
         SeatManager unsafeManager = new SeatManager(5);
         Thread[] unsafeUsers = new Thread[10];
@@ -26,7 +25,6 @@ public class SeatBookingDriver {
             System.out.println("[CRITICAL FLAW] OVERSELLING OCCURRED! More tickets sold than available capacity!");
         }
 
-        // 2. Synchronized Booking (Thread-Safe Guarantee)
         System.out.println("\n--- [2. Synchronized Booking (Atomic Mutual Exclusion)] ---");
         SeatManager safeManager = new SeatManager(5);
         Thread[] safeUsers = new Thread[10];

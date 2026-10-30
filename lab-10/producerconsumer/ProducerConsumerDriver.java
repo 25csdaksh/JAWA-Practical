@@ -16,12 +16,11 @@ public class ProducerConsumerDriver {
 
         System.out.println(String.format("Buffer Capacity: %d | Items to Produce & Consume: %d\n", bufferCapacity, itemsToProduce));
 
-        // 1. Producer Thread
         Thread producer = new Thread(() -> {
             for (int i = 1; i <= itemsToProduce; i++) {
                 try {
                     buffer.produce(i);
-                    Thread.sleep(30); // Simulate production time
+                    Thread.sleep(30);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -29,13 +28,12 @@ public class ProducerConsumerDriver {
             System.out.println("[PRODUCER FINISHED] All items produced.");
         }, "Producer-Thread");
 
-        // 2. Consumer Thread
         Thread consumer = new Thread(() -> {
             for (int i = 1; i <= itemsToProduce; i++) {
                 try {
                     int val = buffer.consume();
                     consumedItems.add(val);
-                    Thread.sleep(60); // Consumer slightly slower to test buffer full waits
+                    Thread.sleep(60);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }

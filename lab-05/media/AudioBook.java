@@ -7,7 +7,7 @@ public class AudioBook extends MediaItem {
     }
 
     public AudioBook(String itemId, String title) {
-        this(itemId, title, 8.0); // Audio books have Rs. 8/day rate
+        this(itemId, title, 8.0);
     }
 
     @Override

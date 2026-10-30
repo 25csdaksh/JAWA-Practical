@@ -26,7 +26,6 @@ public class Driver {
         for (String line : logs) {
             String[] parts = line.split(" ", 3);
             if (parts.length < 3) {
-                // System.out.println("[INFO] Skipping malformed line: " + line);
                 continue;
             }
 
@@ -46,7 +45,7 @@ public class Driver {
         } else {
             System.out.println("No matching logs found.");
         }
-        
+
         scanner.close();
     }
 }

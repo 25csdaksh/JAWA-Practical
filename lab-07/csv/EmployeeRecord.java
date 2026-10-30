@@ -8,7 +8,7 @@ public class EmployeeRecord {
     private String name;
 
     @Column(name = "department")
-    private String department = "General"; // Default if missing
+    private String department = "General";
 
     @Column(name = "salary")
     private double salary = 0.0;

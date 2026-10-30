@@ -18,10 +18,9 @@ public class TestSuite {
     @Run(description = "Intentional failure test case")
     public void testDivisionByZero() {
         System.out.println("   -> Testing division arithmetic...");
-        int error = 10 / 0; // Throws ArithmeticException
+        int error = 10 / 0;
     }
 
-    // Regular helper method NOT marked with @Run (Should NOT be executed by runner)
     public void helperMethod() {
         System.out.println("   -> [WARNING] helperMethod should not be run!");
     }

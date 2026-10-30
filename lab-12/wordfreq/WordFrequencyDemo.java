@@ -19,10 +19,8 @@ public class WordFrequencyDemo {
 
         System.out.println("Input Paragraph:\n" + paragraph.trim() + "\n");
 
-        // 1. Clean paragraph and split into words
         String[] words = paragraph.toLowerCase().split("[^a-zA-Z0-9]+");
 
-        // 2. Count frequency using HashMap<String, Integer>
         Map<String, Integer> freqMap = new HashMap<>();
         int totalWordCount = 0;
         for (String word : words) {
@@ -34,22 +32,19 @@ public class WordFrequencyDemo {
         System.out.println(String.format("Total Words Counted: %d | Unique Words in HashMap: %d\n",
                 totalWordCount, freqMap.size()));
 
-        // 3. Convert Map entries into an ArrayList for sorting
         List<Map.Entry<String, Integer>> entryList = new ArrayList<>(freqMap.entrySet());
 
-        // 4. Sort entries by frequency (highest first) using Comparator; break ties alphabetically
-        Comparator<Map.Entry<String, Integer>> byFrequencyDescending = 
+        Comparator<Map.Entry<String, Integer>> byFrequencyDescending =
                 (e1, e2) -> {
-                    int freqCompare = e2.getValue().compareTo(e1.getValue()); // Descending by value
+                    int freqCompare = e2.getValue().compareTo(e1.getValue());
                     if (freqCompare != 0) {
                         return freqCompare;
                     }
-                    return e1.getKey().compareTo(e2.getKey()); // Ascending by word (alphabetical)
+                    return e1.getKey().compareTo(e2.getKey());
                 };
 
         entryList.sort(byFrequencyDescending);
 
-        // 5. Display words sorted by frequency
         System.out.println("-------------------------------------------------------------");
         System.out.println(String.format("%-6s | %-20s | %-10s | %-10s", "Rank", "Word", "Frequency", "Share (%)"));
         System.out.println("-------------------------------------------------------------");
@@ -64,4 +59,3 @@ public class WordFrequencyDemo {
         System.out.println("Word frequency sorting completed successfully using Comparator!\n");
     }
 }
-

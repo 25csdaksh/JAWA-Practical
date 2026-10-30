@@ -15,7 +15,6 @@ public abstract class MediaItem {
         return title;
     }
 
-    // Abstract method: computes late fee based on days overdue
     public abstract double computeLateFee(int daysLate);
 
     @Override

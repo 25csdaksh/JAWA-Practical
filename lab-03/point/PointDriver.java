@@ -3,9 +3,9 @@ public class PointDriver {
         Point[] points = new Point[] {
             new Point(1, 1),
             new Point(2, 2),
-            new Point(1, 1), // Repeat 1
+            new Point(1, 1),
             new Point(3, 3),
-            new Point(2, 2)  // Repeat 2
+            new Point(2, 2)
         };
 
         System.out.println("Points Array:");

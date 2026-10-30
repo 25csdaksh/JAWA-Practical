@@ -8,11 +8,9 @@ public class SeatManager {
         this.seatsLeft = initialSeats;
     }
 
-    // Unsynchronized: check-then-act race condition causing overselling
     public boolean bookUnsafe(String user) {
         if (seatsLeft > 0) {
             try {
-                // Simulating processing delay to expose race condition
                 Thread.sleep(20);
             } catch (InterruptedException ignored) {}
 
@@ -25,7 +23,6 @@ public class SeatManager {
         return false;
     }
 
-    // Synchronized: atomic check-and-decrement
     public synchronized boolean bookSync(String user) {
         if (seatsLeft > 0) {
             try {

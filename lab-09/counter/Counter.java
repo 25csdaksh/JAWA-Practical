@@ -3,12 +3,10 @@ package counter;
 public class Counter {
     private int count = 0;
 
-    // Unsynchronized increment: subject to lost updates in multi-threaded environment
     public void incrementUnsafe() {
-        count++; // Not atomic: read -> modify -> write
+        count++;
     }
 
-    // Synchronized increment: thread-safe, ensures mutual exclusion
     public synchronized void incrementSync() {
         count++;
     }

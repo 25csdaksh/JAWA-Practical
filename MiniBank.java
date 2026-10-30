@@ -11,7 +11,7 @@ import java.util.TreeMap;
 import model.*;
 import service.*;
 import util.*;
-import static util.Validator.*; // Static import for Validator methods
+import static util.Validator.*;
 
 public class MiniBank {
     enum MenuOption {
@@ -37,9 +37,6 @@ public class MiniBank {
         EXIT
     }
 
-    /**
-     * Practical 12: Uses AccountStore for O(1) HashMap lookup.
-     */
     private static Account findAccount(AccountStore store, String accNo) throws AccountNotFoundException {
         if (accNo == null) {
             throw new AccountNotFoundException("Account number cannot be null.");
@@ -55,19 +52,15 @@ public class MiniBank {
         BankInfo header = new BankInfo("MiniBank India", "Gujarat University Campus");
         System.out.println(header);
 
-        // =========================================================================
-        // PRACTICAL 12 (MILESTONE 2): COLLECTIONS FRAMEWORK STORAGE UPGRADE
-        // =========================================================================
         System.out.println("\n======================================================================================");
         System.out.println("--- [PRACTICAL 12 DEMONSTRATION: COLLECTIONS FRAMEWORK & THREAD-SAFE CONCURRENT MAP] ---");
         System.out.println("======================================================================================");
 
         AccountStore store = new AccountStore();
 
-        // 1. Expected Test Input: Three accounts with balances 5000, 2000 and 9000 added to the store
-        Account acc1 = new SavingsAccount("Daksh Soni", 5000, 1000);    // AC0001: Rs. 5000
-        Account acc2 = new CurrentAccount("Prof. Sharma", 2000, 15000); // AC0002: Rs. 2000
-        Account acc3 = new FixedDepositAccount("Alice Smith", 9000);     // AC0003: Rs. 9000
+        Account acc1 = new SavingsAccount("Daksh Soni", 5000, 1000);
+        Account acc2 = new CurrentAccount("Prof. Sharma", 2000, 15000);
+        Account acc3 = new FixedDepositAccount("Alice Smith", 9000);
 
         store.add(acc1);
         store.add(acc2);
@@ -79,7 +72,6 @@ public class MiniBank {
         System.out.println("   [+ Added] " + acc3);
         System.out.println("   Total Accounts in AccountStore: " + store.size());
 
-        // 2. Expected Process & Output 1: get("AC0002") looks up account in HashMap
         System.out.println("\n2. Testing O(1) HashMap Lookup (get(\"AC0002\")):");
         Account fetched = store.get("AC0002");
         System.out.println("   Lookup get(\"AC0002\") returned: " + fetched);
@@ -89,8 +81,6 @@ public class MiniBank {
             System.out.println("   -> [FAILED] Account AC0002 lookup failed.");
         }
 
-        // 3. Expected Process & Output 2: sortedByBalance() copies values & sorts with Comparator
-        // Expected Order: 9000, 5000, 2000
         System.out.println("\n3. Testing sortedByBalance() with Comparator (Highest Balance First):");
         ArrayList<Account> sortedByBal = store.sortedByBalance();
         System.out.println("   Accounts sorted by balance (order: 9000, 5000, 2000):");
@@ -105,7 +95,6 @@ public class MiniBank {
                 sortedByBal.get(2).getBalance() == 2000;
         System.out.println("   -> [PASSED] Sorted order verified: " + (orderValid ? "[9000, 5000, 2000] OK" : "[FAILED]"));
 
-        // 4. Comparable<Account> natural ordering by accountNumber
         System.out.println("\n4. Testing Natural Ordering via Comparable<Account>.compareTo():");
         ArrayList<Account> sortedByAccNo = store.sortedByAccountNumber();
         System.out.println("   Accounts sorted by account number (Comparable):");
@@ -113,20 +102,17 @@ public class MiniBank {
             System.out.println("   -> " + a.getAccountNumber() + " : " + a.getOwnerName() + " (Rs. " + a.getBalance() + ")");
         }
 
-        // 5. Supplementary Problem 1: Accounts with balance above threshold
         System.out.println("\n5. Supplementary Problem 1: Accounts with balance strictly above Rs. 4000:");
         ArrayList<Account> above4k = store.getAccountsWithBalanceAbove(4000);
         for (Account a : above4k) {
             System.out.println("   -> " + a.getAccountNumber() + " [Rs. " + a.getBalance() + "] (" + a.getOwnerName() + ")");
         }
 
-        // 6. Supplementary Problem 2: Accounts kept in sorted key order using TreeMap
         System.out.println("\n6. Supplementary Problem 2: TreeMap for sorted key order:");
         TreeMap<String, Account> treeMap = store.getAccountsInKeyOrder();
         System.out.println("   TreeMap keys (naturally sorted): " + treeMap.keySet());
         treeMap.forEach((k, v) -> System.out.println(String.format("   -> Key: %s | Account: %s [Rs. %d]", k, v.getOwnerName(), v.getBalance())));
 
-        // 7. TransactionProcessor with ConcurrentHashMap for thread-safe shared accounts
         System.out.println("\n7. Practical 12 Requirement 5: TransactionProcessor with ConcurrentHashMap:");
         TransactionProcessor concurrentProcessor = new TransactionProcessor(4);
         concurrentProcessor.registerAccount(acc1);
@@ -141,7 +127,6 @@ public class MiniBank {
         concurrentProcessor.stop();
         System.out.println("   AC0001 Balance after concurrent updates: Rs. " + acc1.getBalance() + " (Expected: Rs. 6000)");
 
-        // 8. Transaction History in ArrayList<String>
         store.recordTransaction("Demonstrated Practical 12 Collections Framework Milestone 2");
         System.out.println("\n8. ArrayList Transaction History Log (" + store.getTransactionHistory().size() + " entries):");
         for (String record : store.getTransactionHistory()) {
@@ -149,16 +134,11 @@ public class MiniBank {
         }
         System.out.println("--------------------------------------------------------------------------------------\n");
 
-        // =========================================================================
-        // PRACTICAL 11 DEMONSTRATION: SERIALIZATION, TRANSIENT FIELDS & NIO REPORT
-        // =========================================================================
         System.out.println("--- [PRACTICAL 11 DEMONSTRATION: SERIALIZATION, TRANSIENT FIELDS & NIO REPORT] ---");
 
-        // 1. Serialization Round-Trip with StatePersister and Transient Field Validation
         System.out.println("\n1. Testing Model Persistence (StatePersister.save & load with transient field check):");
         Path accountsPath = Paths.get("data", "accounts.dat");
 
-        // Set transient session tokens before serialization
         acc1.setSessionToken("SESSION-TOKEN-DAKSH-991");
         acc2.setSessionToken("SESSION-TOKEN-SHARMA-882");
         acc3.setSessionToken("SESSION-TOKEN-ALICE-773");
@@ -169,11 +149,9 @@ public class MiniBank {
         }
 
         try {
-            // Save active accounts collection
             StatePersister.save(store.getAll(), accountsPath);
             System.out.println("   [SAVED] Successfully serialized " + store.size() + " accounts to " + accountsPath.toAbsolutePath());
 
-            // Reload accounts from file
             Account[] reloadedAccounts = StatePersister.load(accountsPath);
             System.out.println("   [LOADED] Successfully deserialized accounts from file into fresh array:");
             for (Account reloaded : reloadedAccounts) {
@@ -181,7 +159,6 @@ public class MiniBank {
                         reloaded, (reloaded.getSessionToken() != null ? reloaded.getSessionToken() : "<NULL - TRANSIENT EXCLUDED>")));
             }
 
-            // Confirm integrity
             boolean dataSurvived = (reloadedAccounts.length == store.size()) &&
                     reloadedAccounts[0].getAccountNumber().equals(acc1.getAccountNumber()) &&
                     reloadedAccounts[0].getBalance() == acc1.getBalance() &&
@@ -191,7 +168,6 @@ public class MiniBank {
             System.err.println("   State persistence error: " + e.getMessage());
         }
 
-        // 2. Append-Only Transaction Logging with NIO (TransactionLog.append)
         System.out.println("\n2. Writing Append-Only Transaction Logs (TransactionLog.append):");
         Path logsDir = Paths.get("logs");
         Path branch1Log = logsDir.resolve("branch1_transactions.log");
@@ -204,7 +180,6 @@ public class MiniBank {
                 Files.createDirectories(logsDir);
             }
 
-            // Write transaction logs
             TransactionLog.append(branch1Log, "DEPOSIT AC0001 500");
             TransactionLog.append(branch1Log, "WITHDRAW AC0002 200");
             TransactionLog.append(branch1Log, "DEPOSIT AC0003 15000");
@@ -213,7 +188,7 @@ public class MiniBank {
             TransactionLog.append(branch2Log, "WITHDRAW AC0001 300");
             TransactionLog.append(branch2Log, "WITHDRAW AC0003 5000");
 
-            Files.writeString(emptyLog, ""); // Empty file (0 bytes)
+            Files.writeString(emptyLog, "");
             Files.writeString(nonLogDoc, "This is an audit documentation text file, not a .log transaction file.");
 
             System.out.println("   Appended transactions to: " + branch1Log.getFileName() + " and " + branch2Log.getFileName());
@@ -222,7 +197,6 @@ public class MiniBank {
             System.err.println("   Transaction logging error: " + e.getMessage());
         }
 
-        // 3. NIO DirectoryStream Log Walk & End-of-Day Report Generation (ReportGenerator)
         System.out.println("\n3. Generating End-of-Day Financial Reconciliation Audit Report (ReportGenerator):");
         Path reportPath = Paths.get("reports", "daily_reconciliation_report.txt");
         try {
@@ -235,12 +209,8 @@ public class MiniBank {
 
         System.out.println("--------------------------------------------------------------------------------------\n");
 
-        // =========================================================================
-        // PRACTICAL 10 DEMONSTRATION: THREAD POOLS, PRODUCER-CONSUMER & DEADLOCKS
-        // =========================================================================
         System.out.println("--- [PRACTICAL 10 DEMONSTRATION: THREAD POOLS, PRODUCER-CONSUMER & DEADLOCKS] ---");
 
-        // 1. Managed Thread Pool Batch Processing (TransactionProcessor)
         System.out.println("\n1. Testing Managed Thread Pool (TransactionProcessor with 4 Threads):");
         TransactionProcessor processor = new TransactionProcessor(4);
         Account poolAccount = acc1;
@@ -260,7 +230,6 @@ public class MiniBank {
         processor.printExecutionStats();
         System.out.println("   Final Balance of AC0001 after 12 pool deposits: Rs. " + poolAccount.getBalance());
 
-        // 2. Inter-Thread Coordination: Producer-Consumer with wait() and notify()
         System.out.println("\n2. Testing Producer-Consumer Transaction Buffer (wait/notify):");
         TransactionBuffer txQueue = new TransactionBuffer(3);
         Account consumerTargetAccount = acc2;
@@ -304,12 +273,10 @@ public class MiniBank {
         System.out.println("   Producer-Consumer finished: 6 transactions processed seamlessly with 0 queue overflows/underflows.");
         System.out.println("   Target Account AC0002 Balance: Rs. " + consumerTargetAccount.getBalance());
 
-        // 3. Deadlock Demonstration and Consistent Lock Ordering Fix
         System.out.println("\n3. Testing Deadlock Reproduction & Consistent Lock Ordering Fix:");
         Account deadlockA = new SavingsAccount("Deadlock-Test-A", 10000, 0);
         Account deadlockB = new SavingsAccount("Deadlock-Test-B", 10000, 0);
 
-        // (a) Deadlock Reproduction Test
         System.out.println("   (a) Testing Reverse Lock Order Transfer (A -> B and B -> A)...");
         Thread deadlock1 = new Thread(() -> {
             try {
@@ -339,10 +306,9 @@ public class MiniBank {
             System.out.println("   -> Deadlock-Thread-A State: " + deadlock1.getState() + " | Deadlock-Thread-B State: " + deadlock2.getState());
         }
 
-        // (b) Deadlock-Free Safe Transfer with Canonical Lock Ordering
         System.out.println("\n   (b) Executing Deadlock-Free Transfers (Consistent Lower Account Number First):");
-        Account safeA = acc1; // AC0001
-        Account safeB = acc2; // AC0002
+        Account safeA = acc1;
+        Account safeB = acc2;
 
         Thread safe1 = new Thread(() -> {
             try {
@@ -373,9 +339,6 @@ public class MiniBank {
 
         System.out.println("-----------------------------------------------------------\n");
 
-        // =========================================================================
-        // INTERACTIVE BANKING SHELL (POWERED BY ACCOUNTSTORE COLLECTIONS)
-        // =========================================================================
         Scanner scanner = new Scanner(System.in);
         boolean keepRunning = true;
 
@@ -717,7 +680,7 @@ public class MiniBank {
                         try { t.join(); } catch (InterruptedException ignored) {}
                     }
                     System.out.println("10 threads x 1,000 synchronized deposits completed!");
-                    System.out.println("Final Balance: Rs. " + benchAcc.getBalance() + " (Expected: Rs. 10000) -> " 
+                    System.out.println("Final Balance: Rs. " + benchAcc.getBalance() + " (Expected: Rs. 10000) -> "
                             + (benchAcc.getBalance() == 10000 ? "[PASS - THREAD SAFE]" : "[FAIL]"));
                 }
                 case VERIFY_CREDENTIALS -> {

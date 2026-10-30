@@ -22,7 +22,7 @@ public class ShapeDriver {
 
         for (int i = 0; i < shapes.length; i++) {
             Shape shape = shapes[i];
-            double area = shape.area(); // Dynamic method dispatch (Polymorphism)
+            double area = shape.area();
             runningTotal += area;
 
             if (area > maxArea) {
@@ -30,14 +30,14 @@ public class ShapeDriver {
                 largestShape = shape;
             }
 
-            System.out.println(String.format("%-4d | %-32s | %-12.2f | %-12.2f", 
+            System.out.println(String.format("%-4d | %-32s | %-12.2f | %-12.2f",
                 (i + 1), shape.toString(), area, runningTotal));
         }
 
         System.out.println("-------------------------------------------------------------------------");
         System.out.println(String.format("Grand Total Area : %.2f", runningTotal));
         if (largestShape != null) {
-            System.out.println(String.format("Largest Shape    : %s (Area = %.2f)", 
+            System.out.println(String.format("Largest Shape    : %s (Area = %.2f)",
                 largestShape.getClass().getSimpleName(), maxArea));
         }
         System.out.println("=================================================\n");

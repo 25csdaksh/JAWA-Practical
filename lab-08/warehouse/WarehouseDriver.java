@@ -20,12 +20,12 @@ public class WarehouseDriver {
         System.out.println("-------------------------------------------------");
 
         OrderRequest[] requests = {
-            new OrderRequest("Keyboards", 10),  // Success
-            new OrderRequest("Laptops", -2),    // InvalidQuantityException
-            new OrderRequest("Monitors", 8),    // OutOfStockException (shortfall = 3)
-            new OrderRequest("Keyboards", 0),   // InvalidQuantityException
-            new OrderRequest("Laptops", 5),     // Success
-            new OrderRequest("Laptops", 8)      // OutOfStockException (shortfall = 3)
+            new OrderRequest("Keyboards", 10),
+            new OrderRequest("Laptops", -2),
+            new OrderRequest("Monitors", 8),
+            new OrderRequest("Keyboards", 0),
+            new OrderRequest("Laptops", 5),
+            new OrderRequest("Laptops", 8)
         };
 
         System.out.println("Processing batch issue requests (fault-tolerant execution):\n");

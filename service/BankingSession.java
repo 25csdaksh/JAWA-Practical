@@ -9,7 +9,7 @@ public class BankingSession implements AutoCloseable {
         this.sessionUser = sessionUser;
         this.sessionId = "SES-" + System.currentTimeMillis() % 100000;
         this.open = true;
-        System.out.println(String.format("   [SESSION STARTED] Secure session %s initialized for operator '%s'.", 
+        System.out.println(String.format("   [SESSION STARTED] Secure session %s initialized for operator '%s'.",
                 sessionId, sessionUser));
     }
 

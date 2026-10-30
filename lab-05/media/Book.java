@@ -11,7 +11,7 @@ public class Book extends MediaItem {
     }
 
     public Book(String itemId, String title) {
-        this(itemId, title, 5.0, 2, 250.0); // Rs. 5/day after 2 days grace, cap Rs. 250
+        this(itemId, title, 5.0, 2, 250.0);
     }
 
     @Override

@@ -15,7 +15,7 @@ public class CurrentAccount extends Account {
     }
 
     public CurrentAccount(String ownerName, long balance) {
-        this(ownerName, balance, 10000); // Default overdraft limit: Rs. 10,000
+        this(ownerName, balance, 10000);
     }
 
     public long getOverdraftLimit() {
@@ -40,7 +40,7 @@ public class CurrentAccount extends Account {
         if ((getBalance() - amount) < -overdraftLimit) {
             long shortfall = amount - (getBalance() + overdraftLimit);
             throw new InsufficientFundsException(
-                String.format("Withdrawal failed: exceeds overdraft limit by %d (Overdraft Limit: Rs. %d)", 
+                String.format("Withdrawal failed: exceeds overdraft limit by %d (Overdraft Limit: Rs. %d)",
                         shortfall, overdraftLimit),
                 shortfall
             );

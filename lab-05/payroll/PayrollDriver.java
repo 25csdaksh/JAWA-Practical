@@ -19,11 +19,11 @@ public class PayrollDriver {
         System.out.println("------------------------------------------------------------------------------------");
 
         for (Employee emp : employees) {
-            double salary = emp.monthlySalary(); // Dynamic method dispatch (Polymorphism)
+            double salary = emp.monthlySalary();
             totalPayroll += salary;
 
             String note = "";
-            // Pattern matching instanceof for Java 17+
+
             if (emp instanceof Intern intern) {
                 note = "[INTERN NOTICE] Stipend verified. Univ: " + intern.getUniversity();
             } else if (emp instanceof FullTime) {
@@ -32,7 +32,7 @@ public class PayrollDriver {
                 note = String.format("Logged %.1f hrs @ Rs. %.2f/hr", pt.getHoursWorked(), pt.getHourlyRate());
             }
 
-            System.out.println(String.format("%-8s | %-16s | Rs. %-10.2f | %-34s", 
+            System.out.println(String.format("%-8s | %-16s | Rs. %-10.2f | %-34s",
                 emp.getId(), emp.getName(), salary, note));
         }
 

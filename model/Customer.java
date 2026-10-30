@@ -52,7 +52,6 @@ public class Customer implements Cloneable, Serializable {
         this(name, email, mobile, null);
     }
 
-    // Getters
     public String getName() { return name; }
     public String getEmail() { return email; }
     public String getMobile() { return mobile; }
@@ -78,7 +77,7 @@ public class Customer implements Cloneable, Serializable {
 
     @Override
     public String toString() {
-        return "Customer[ID=" + customerId + ", Name=" + name + ", Email=" + email 
+        return "Customer[ID=" + customerId + ", Name=" + name + ", Email=" + email
                + ", Mobile=" + mobile + ", Address={" + (address != null ? address : "None") + "}]";
     }
 }

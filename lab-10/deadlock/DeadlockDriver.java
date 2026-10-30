@@ -19,7 +19,6 @@ public class DeadlockDriver {
         System.out.println("   PRACTICAL 10 - PART A3: DEADLOCK REPRODUCTION ");
         System.out.println("=================================================");
 
-        // 1. Reproducing Deadlock (Opposite Lock Ordering)
         System.out.println("--- [1. Reproducing Deadlock via Opposite Lock Acquisition Order] ---");
         Resource deadlockA = new Resource(1, "Deadlock-Resource-A");
         Resource deadlockB = new Resource(2, "Deadlock-Resource-B");
@@ -35,7 +34,7 @@ public class DeadlockDriver {
         }, "Deadlock-Worker-1");
 
         Thread deadlockThread2 = new Thread(() -> {
-            synchronized (deadlockB) { // Opposite lock order (B before A)
+            synchronized (deadlockB) {
                 System.out.println("   [Thread 2] Locked " + deadlockB.getName() + ", waiting to lock " + deadlockA.getName() + "...");
                 try { Thread.sleep(60); } catch (InterruptedException ignored) {}
                 synchronized (deadlockA) {
@@ -44,14 +43,12 @@ public class DeadlockDriver {
             }
         }, "Deadlock-Worker-2");
 
-        // Make deadlock threads daemons so JVM terminates cleanly after tests
         deadlockThread1.setDaemon(true);
         deadlockThread2.setDaemon(true);
 
         deadlockThread1.start();
         deadlockThread2.start();
 
-        // Wait 300ms to detect the deadlock
         deadlockThread1.join(250);
         deadlockThread2.join(250);
 
@@ -60,7 +57,6 @@ public class DeadlockDriver {
             System.out.println("   -> Thread 1 State: " + deadlockThread1.getState() + " | Thread 2 State: " + deadlockThread2.getState());
         }
 
-        // 2. Removing Deadlock (Consistent Global Lock Ordering)
         System.out.println("\n--- [2. Eliminating Deadlock with Consistent Lock Ordering (Lower ID First)] ---");
         Resource safeA = new Resource(1, "Safe-Resource-A");
         Resource safeB = new Resource(2, "Safe-Resource-B");
@@ -82,7 +78,6 @@ public class DeadlockDriver {
     }
 
     private static void performSafeOperation(Resource r1, Resource r2, String threadTag) {
-        // Consistent global ordering: Always acquire the lock with the smaller ID first
         Resource firstLock = (r1.getId() < r2.getId()) ? r1 : r2;
         Resource secondLock = (firstLock == r1) ? r2 : r1;
 

@@ -9,13 +9,11 @@ public class Card {
         this.suit = suit;
     }
 
-    // (b) Override toString() to return rank + “ of ” + suit
     @Override
     public String toString() {
         return rank + " of " + suit;
     }
 
-    // (c) Override equals() by rank + suit
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -24,7 +22,6 @@ public class Card {
         return Objects.equals(rank, card.rank) && Objects.equals(suit, card.suit);
     }
 
-    // Override hashCode() by rank + suit
     @Override
     public int hashCode() {
         return Objects.hash(rank, suit);

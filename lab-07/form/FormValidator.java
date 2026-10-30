@@ -19,7 +19,6 @@ public class FormValidator {
             try {
                 Object value = field.get(obj);
 
-                // 1. Check @NotBlank
                 if (field.isAnnotationPresent(NotBlank.class)) {
                     NotBlank notBlank = field.getAnnotation(NotBlank.class);
                     if (value == null || value.toString().trim().isEmpty()) {
@@ -27,11 +26,10 @@ public class FormValidator {
                     }
                 }
 
-                // 2. Check @MaxLength
                 if (field.isAnnotationPresent(MaxLength.class)) {
                     MaxLength maxLength = field.getAnnotation(MaxLength.class);
                     if (value != null && value.toString().length() > maxLength.value()) {
-                        errors.add(String.format("Field '%s': %s (Current length: %d, Max allowed: %d)", 
+                        errors.add(String.format("Field '%s': %s (Current length: %d, Max allowed: %d)",
                             field.getName(), maxLength.message(), value.toString().length(), maxLength.value()));
                     }
                 }

@@ -9,7 +9,6 @@ public abstract class Shape {
         return name;
     }
 
-    // Abstract method to be implemented by all concrete shapes
     public abstract double area();
 
     @Override

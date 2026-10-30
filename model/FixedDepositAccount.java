@@ -19,7 +19,7 @@ public class FixedDepositAccount extends Account implements Premium {
     }
 
     public FixedDepositAccount(String ownerName, long balance) {
-        this(ownerName, balance, LocalDate.now().plusYears(1)); // Default 1 year lock-in
+        this(ownerName, balance, LocalDate.now().plusYears(1));
     }
 
     public LocalDate getMaturityDate() {
@@ -58,7 +58,7 @@ public class FixedDepositAccount extends Account implements Premium {
         if (getBalance() < amount) {
             long shortfall = amount - getBalance();
             throw new InsufficientFundsException(
-                String.format("Withdrawal failed: short by %d (Balance: %d, Attempted: %d)", 
+                String.format("Withdrawal failed: short by %d (Balance: %d, Attempted: %d)",
                         shortfall, getBalance(), amount),
                 shortfall
             );

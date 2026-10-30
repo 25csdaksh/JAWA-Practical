@@ -8,7 +8,7 @@ public class UserProfile implements Serializable {
     private int userId;
     private String username;
     private String email;
-    // Transient field: will NOT be saved during serialization
+
     private transient String sessionToken;
 
     public UserProfile(int userId, String username, String email, String sessionToken) {

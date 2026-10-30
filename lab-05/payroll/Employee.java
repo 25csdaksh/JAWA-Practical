@@ -15,7 +15,6 @@ public abstract class Employee {
         return name;
     }
 
-    // Abstract method implemented by each employment type
     public abstract double monthlySalary();
 
     @Override
