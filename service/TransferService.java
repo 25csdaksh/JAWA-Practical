@@ -42,11 +42,11 @@ public class TransferService {
 
         long startTime = System.currentTimeMillis();
 
-        // 1. Consistent Lock Ordering: Always lock lower accountNumber first
+        // 1. Consistent Lock Ordering using Comparable<Account> (compareTo): Always lock lower accountNumber first
         Account firstLock;
         Account secondLock;
 
-        if (from.getAccountNumber().compareTo(to.getAccountNumber()) < 0) {
+        if (from.compareTo(to) < 0) {
             firstLock = from;
             secondLock = to;
         } else {

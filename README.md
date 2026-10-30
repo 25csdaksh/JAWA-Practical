@@ -1,6 +1,6 @@
 # OOP Lab Practical Portfolio — Semester Work
 
-This repository contains the complete Java solutions for **Practical 1** through **Practical 10**, organized into practice programs and the modular, concurrent, thread-safe, and fault-tolerant **MiniBank** enterprise project.
+This repository contains the complete Java solutions for **Practical 1** through **Practical 12**, organized into practice programs and the modular, concurrent, thread-safe, and fault-tolerant **MiniBank** enterprise project.
 
 ---
 
@@ -25,6 +25,21 @@ A.lab practical/
 │   │   └── ProducerConsumerDriver.java
 │   └── deadlock/            (Part A3: Deadlock Reproduction & Consistent Lock Ordering Fix)
 │       └── DeadlockDriver.java
+├── lab-11/                  (Practical 11 — Practice Programs)
+│   ├── saveload/            (Part A1: Serialization & Transient Session Tokens)
+│   │   ├── UserProfile.java
+│   │   └── SaveLoadDemo.java
+│   ├── loganalyzer/         (Part A2: NIO Log File Reading & Attribute Inspection)
+│   │   └── LogAnalyzerDemo.java
+│   └── treewalker/          (Part A3: Recursive walkFileTree Directory Audit)
+│       └── TreeWalkerDemo.java
+├── lab-12/                  (Practical 12 — Practice Programs)
+│   ├── wordfreq/            (Part A1: Word Frequency Counting with HashMap & Comparator)
+│   │   └── WordFrequencyDemo.java
+│   ├── visitors/            (Part A2: Deduplication via HashSet & First-Seen via LinkedHashSet)
+│   │   └── UniqueVisitorsDemo.java
+│   └── leaderboard/         (Part A3: Gaming Leaderboard with Map & Tie-Breaker Comparator)
+│       └── LeaderboardDemo.java
 ├── exception/               (Custom Checked Exception Hierarchy)
 │   ├── BankException.java
 │   ├── InsufficientFundsException.java
@@ -36,24 +51,28 @@ A.lab practical/
 │   │   ├── Id.java
 │   │   ├── Positive.java
 │   │   └── MaxLength.java
-│   ├── Account.java         (Thread-safe synchronized balance methods & annotations)
+│   ├── Account.java         (Thread-safe balance, Comparable<Account>, Serializable)
 │   ├── SavingsAccount.java  (Thread-safe savings account)
 │   ├── CurrentAccount.java  (Thread-safe current account)
 │   ├── FixedDepositAccount.java (Thread-safe fixed deposit account)
 │   └── ...
 ├── service/                 (Core Capabilities, Processors & Coordination)
-│   ├── TransactionProcessor.java (Practical 10 — Managed Fixed Thread Pool Batch Engine)
+│   ├── AccountStore.java         (Practical 12 — HashMap Storage, ArrayList Audit, Comparator Sort)
+│   ├── TransactionProcessor.java (Practical 12 — Thread-Safe ConcurrentHashMap Shared Accounts Engine)
 │   ├── TransactionBuffer.java    (Practical 10 — Bounded Producer-Consumer Transaction Queue)
-│   ├── TransferService.java      (Practical 10 — Deadlock-Free Safe Transfers via Lock Ordering)
+│   ├── TransferService.java      (Practical 10/12 — Deadlock-Free Safe Transfers via Comparable)
 │   ├── AccountWorker.java   (Multi-threaded Runnable Worker)
 │   ├── BankingSession.java  (AutoCloseable Audit Session)
 │   └── ...
-├── util/                    (Utilities & Reflection Helpers)
+├── util/                    (Utilities, Reflection & NIO Helpers)
+│   ├── StatePersister.java  (Practical 11/12 — Object Serialization for Array & Collections)
+│   ├── TransactionLog.java  (Practical 11 — Append-Only NIO Channel Logging)
+│   ├── ReportGenerator.java (Practical 11 — NIO DirectoryStream Financial Reconciliation)
 │   ├── AnnotationValidator.java
 │   ├── Validator.java
 │   ├── StatementFormatter.java
 │   └── CommandParser.java
-├── MiniBank.java            (Main Banking Shell with Thread Pool, Queue & Deadlock Demonstrations)
+├── MiniBank.java            (Main Banking Shell with Collections Milestone 2, Multi-threading & NIO)
 ├── MANIFEST.MF              (JAR Manifest specifying Main-Class: MiniBank)
 ├── minibank.jar             (Packaged Runnable JAR Artifact)
 ├── .gitignore
@@ -68,7 +87,7 @@ Make sure you have JDK 17 or higher installed on your system. Run all commands f
 
 ### 1. Compiling MiniBank & All Packages into `bin/`
 ```powershell
-javac -d bin exception/*.java model/annotation/*.java service/*.java model/*.java util/*.java MiniBank.java lab-10/threadpool/*.java lab-10/producerconsumer/*.java lab-10/deadlock/*.java
+javac -d bin exception/*.java model/annotation/*.java service/*.java model/*.java util/*.java MiniBank.java lab-12/wordfreq/*.java lab-12/visitors/*.java lab-12/leaderboard/*.java
 ```
 
 ### 2. Building the Runnable JAR (`minibank.jar`)
@@ -76,18 +95,18 @@ javac -d bin exception/*.java model/annotation/*.java service/*.java model/*.jav
 jar cfm minibank.jar MANIFEST.MF -C bin .
 ```
 
-### 3. Running Practical 10 Practice Programs
-* **Thread Pool Runner (Fixed Thread Pool & Recycling):**
+### 3. Running Practical 12 Practice Programs
+* **Word Frequency (HashMap & Comparator):**
   ```powershell
-  java -cp bin threadpool.ThreadPoolDriver
+  java -cp bin wordfreq.WordFrequencyDemo
   ```
-* **Producer-Consumer (wait / notify Coordination):**
+* **Unique Visitors (HashSet & LinkedHashSet):**
   ```powershell
-  java -cp bin producerconsumer.ProducerConsumerDriver
+  java -cp bin visitors.UniqueVisitorsDemo
   ```
-* **Deadlock Reproduction & Fix (Canonical Lock Ordering):**
+* **Leaderboard (Map & Tie-Breaking Comparator):**
   ```powershell
-  java -cp bin deadlock.DeadlockDriver
+  java -cp bin leaderboard.LeaderboardDemo
   ```
 
 ### 4. Running the MiniBank Runnable JAR
@@ -271,7 +290,80 @@ java -jar minibank.jar
 
 ---
 
+### 💡 Practical 12 Questions (Collections Framework & Milestone 2)
+
+#### 1. What is the difference between a List, a Set and a Map?
+* **`List` (e.g., `ArrayList`, `LinkedList`):**
+  - An **ordered collection** (sequence) that preserves insertion order.
+  - Allows **duplicate elements**.
+  - Elements are accessed positionally by a zero-based integer index (`get(int index)`, `set(int index, E element)`).
+* **`Set` (e.g., `HashSet`, `LinkedHashSet`, `TreeSet`):**
+  - An **unordered or specially ordered collection** that models mathematical sets.
+  - Prohibits **duplicate elements** (each element can appear at most once, determined via `equals()` and `hashCode()`).
+  - No index-based access; items are retrieved via iterators or enhanced `for` loops.
+* **`Map` (e.g., `HashMap`, `TreeMap`, `ConcurrentHashMap`):**
+  - A collection of **key-value pairs** (`Entry<K, V>`), mapping unique keys to values.
+  - Prohibits **duplicate keys**, but allows duplicate values.
+  - Lookups occur via key (`get(Object key)`), offering near-instantaneous $O(1)$ average time complexity in hash-based implementations.
+
+#### 2. When do you use a HashMap versus a TreeMap?
+* **Use `HashMap` when:**
+  - Fast search, insertion, and deletion are the primary priorities ($O(1)$ constant average time complexity).
+  - Ordering of elements does **not** matter.
+  - Keys implement proper `hashCode()` and `equals()` methods.
+  - Single `null` key and multiple `null` values are permissible.
+* **Use `TreeMap` when:**
+  - Keys **must be sorted** in natural order (`Comparable`) or according to a custom `Comparator`.
+  - Range-based queries or navigational lookups are required (`firstKey()`, `lastKey()`, `subMap()`, `headMap()`, `tailMap()`).
+  - Performance trade-off of $O(\log N)$ (Red-Black Tree balanced tree operations) is acceptable in exchange for guaranteed ordering.
+  - Prohibits `null` keys.
+
+#### 3. What is the difference between Comparable and Comparator?
+* **`Comparable<T>` (Internal / Natural Ordering):**
+  - Belongs to `java.lang` and defines the **inherent, natural sorting order** of a class.
+  - Implemented directly by the entity class by overriding a single method: `int compareTo(T other)`.
+  - Modifies the original class source code (e.g., `Account implements Comparable<Account>` sorting by `accountNumber`).
+  - Only one natural sorting sequence can be defined per class.
+* **`Comparator<T>` (External / Custom Ordering):**
+  - Belongs to `java.util` and defines **external, pluggable, flexible sorting strategies**.
+  - Implemented outside the entity class or defined via lambda expressions / method references: `int compare(T o1, T o2)`.
+  - Does **not** require modifying the domain class.
+  - Multiple distinct comparators can coexist (e.g., sorting accounts by balance descending, sorting by owner name, sorting by interest rate, or sorting leaderboards with multi-criteria tie-breakers).
+
+---
+
 ## 🛠️ Implemented Features & Supplementary Solutions
+
+### Practical 12 (Milestone 2 Collections Framework Upgrade)
+* **Part A1 — Word Frequency Analysis (`lab-12/wordfreq`):**
+  - Tokenizes paragraphs into normalized lowercase words using regex patterns.
+  - Counts word occurrences using `HashMap<String, Integer>`.
+  - Sorts entries by frequency (highest first) using a custom `Comparator<Map.Entry<String, Integer>>`, breaking ties alphabetically.
+* **Part A2 — Unique Visitors Deduplication (`lab-12/visitors`):**
+  - Uses `HashSet<String>` for $O(1)$ membership checking and calculating true unique count.
+  - Uses `LinkedHashSet<String>` to preserve first-seen chronological insertion order while eliminating repeat logins.
+  - Extracts and displays the first three distinct visitors in first-seen order.
+* **Part A3 — Gaming Leaderboard System (`lab-12/leaderboard`):**
+  - Maintains player scores in a `Map<String, Integer>`.
+  - Dynamically extracts Top-N leaders using a multi-criteria `Comparator`: primary sort by score descending, secondary tie-breaker by player name alphabetically.
+  - Supports live score adjustments and tie resolution via `Map.merge()`.
+* **Part B — MiniBank Collections Framework Upgrade (Milestone 2):**
+  - `service.AccountStore`:
+    - Replaces fixed-size `Account[]` arrays with a fast `HashMap<String, Account>` keyed by `accountNumber`.
+    - Implements $O(1)$ operations: `add(Account account)`, `get(String accountNumber)`, `getAll()`, `contains(String accountNumber)`.
+    - Maintains an append-only audit trail in an `ArrayList<String>` (`recordTransaction()`, `getTransactionHistory()`).
+    - Implements `sortedByBalance()` returning an `ArrayList<Account>` sorted descending by balance using a `Comparator`.
+    - Implements `sortedByAccountNumber()` using `Comparable<Account>`.
+    - **Supplementary Problem 1:** `getAccountsWithBalanceAbove(long threshold)` returning matching accounts.
+    - **Supplementary Problem 2:** `getAccountsInKeyOrder()` returning a `TreeMap<String, Account>` keeping accounts naturally sorted by key.
+  - `model.Account`:
+    - Implements `Comparable<Account>` with `compareTo(Account other)` comparing account numbers.
+  - `service.TransactionProcessor`:
+    - Incorporates a thread-safe `ConcurrentHashMap<String, Account>` for shared accounts (`sharedAccounts`).
+    - Supports concurrent deposit and withdrawal task submissions across pool worker threads without synchronization bottlenecks.
+  - `MiniBank.java`:
+    - Pre-flight automated verification asserting exact lab requirements: adds accounts with balances 5000, 2000, 9000; proves `get("AC0002")` returns the correct account; verifies `sortedByBalance()` yields the exact sequence `[9000, 5000, 2000]`.
+    - Seamlessly upgraded interactive console shell with 20 comprehensive options managing accounts directly via `AccountStore`.
 
 ### Practical 11
 * **Part A1 — Save/Load Object Serialization (`lab-11/saveload`):**

@@ -40,6 +40,16 @@ public class StatePersister {
     }
 
     /**
+     * Overload to save a Collection of accounts (e.g. from AccountStore.getAll()).
+     */
+    public static void save(java.util.Collection<Account> accounts, Path file) throws IOException {
+        if (accounts == null) {
+            throw new IllegalArgumentException("Accounts collection cannot be null.");
+        }
+        save(accounts.toArray(new Account[0]), file);
+    }
+
+    /**
      * Deserializes an array of Account objects from the specified file path using ObjectInputStream inside try-with-resources.
      *
      * @param file Source Path containing serialized accounts

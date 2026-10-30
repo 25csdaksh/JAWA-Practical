@@ -3,7 +3,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.TreeMap;
 import model.*;
 import service.*;
 import util.*;
@@ -16,6 +20,11 @@ public class MiniBank {
         WITHDRAW,
         TRANSFER,
         VIEW_STATEMENT,
+        LIST_ALL_ACCOUNTS,
+        ACCOUNTS_SORTED_BY_BALANCE,
+        ACCOUNTS_ABOVE_BALANCE,
+        ACCOUNTS_TREEMAP_ORDER,
+        VIEW_TRANSACTION_HISTORY,
         SAVE_STATE,
         LOAD_STATE,
         APPEND_LOG,
@@ -28,11 +37,16 @@ public class MiniBank {
         EXIT
     }
 
-    private static Account findAccount(Account[] accounts, int count, String accNo) throws AccountNotFoundException {
-        for (int i = 0; i < count; i++) {
-            if (accounts[i].getAccountNumber().equalsIgnoreCase(accNo.trim())) {
-                return accounts[i];
-            }
+    /**
+     * Practical 12: Uses AccountStore for O(1) HashMap lookup.
+     */
+    private static Account findAccount(AccountStore store, String accNo) throws AccountNotFoundException {
+        if (accNo == null) {
+            throw new AccountNotFoundException("Account number cannot be null.");
+        }
+        Account acc = store.get(accNo.trim());
+        if (acc != null) {
+            return acc;
         }
         throw new AccountNotFoundException("Account '" + accNo + "' was not found in bank database.");
     }
@@ -41,36 +55,123 @@ public class MiniBank {
         BankInfo header = new BankInfo("MiniBank India", "Gujarat University Campus");
         System.out.println(header);
 
-        Account[] accounts = new Account[100];
-        int accountCount = 0;
+        // =========================================================================
+        // PRACTICAL 12 (MILESTONE 2): COLLECTIONS FRAMEWORK STORAGE UPGRADE
+        // =========================================================================
+        System.out.println("\n======================================================================================");
+        System.out.println("--- [PRACTICAL 12 DEMONSTRATION: COLLECTIONS FRAMEWORK & THREAD-SAFE CONCURRENT MAP] ---");
+        System.out.println("======================================================================================");
 
-        // Pre-load accounts
-        accounts[accountCount++] = new SavingsAccount("Daksh Soni", 25000, 1000);
-        accounts[accountCount++] = new CurrentAccount("Prof. Sharma", 40000, 15000);
-        accounts[accountCount++] = new FixedDepositAccount("Alice Smith", 100000);
+        AccountStore store = new AccountStore();
 
-        System.out.println("\n--- [PRACTICAL 11 DEMONSTRATION: SERIALIZATION, TRANSIENT FIELDS & NIO REPORT GENERATION] ---");
+        // 1. Expected Test Input: Three accounts with balances 5000, 2000 and 9000 added to the store
+        Account acc1 = new SavingsAccount("Daksh Soni", 5000, 1000);    // AC0001: Rs. 5000
+        Account acc2 = new CurrentAccount("Prof. Sharma", 2000, 15000); // AC0002: Rs. 2000
+        Account acc3 = new FixedDepositAccount("Alice Smith", 9000);     // AC0003: Rs. 9000
+
+        store.add(acc1);
+        store.add(acc2);
+        store.add(acc3);
+
+        System.out.println("\n1. Accounts added to HashMap-backed AccountStore:");
+        System.out.println("   [+ Added] " + acc1);
+        System.out.println("   [+ Added] " + acc2);
+        System.out.println("   [+ Added] " + acc3);
+        System.out.println("   Total Accounts in AccountStore: " + store.size());
+
+        // 2. Expected Process & Output 1: get("AC0002") looks up account in HashMap
+        System.out.println("\n2. Testing O(1) HashMap Lookup (get(\"AC0002\")):");
+        Account fetched = store.get("AC0002");
+        System.out.println("   Lookup get(\"AC0002\") returned: " + fetched);
+        if (fetched != null && fetched.getAccountNumber().equals("AC0002") && fetched.getBalance() == 2000) {
+            System.out.println("   -> [PASSED] Expected Account AC0002 (Rs. 2000) successfully retrieved!");
+        } else {
+            System.out.println("   -> [FAILED] Account AC0002 lookup failed.");
+        }
+
+        // 3. Expected Process & Output 2: sortedByBalance() copies values & sorts with Comparator
+        // Expected Order: 9000, 5000, 2000
+        System.out.println("\n3. Testing sortedByBalance() with Comparator (Highest Balance First):");
+        ArrayList<Account> sortedByBal = store.sortedByBalance();
+        System.out.println("   Accounts sorted by balance (order: 9000, 5000, 2000):");
+        for (int i = 0; i < sortedByBal.size(); i++) {
+            Account a = sortedByBal.get(i);
+            System.out.println(String.format("   [%d] %s -> Balance: Rs. %d (Owner: %s)",
+                    i + 1, a.getAccountNumber(), a.getBalance(), a.getOwnerName()));
+        }
+        boolean orderValid = sortedByBal.size() == 3 &&
+                sortedByBal.get(0).getBalance() == 9000 &&
+                sortedByBal.get(1).getBalance() == 5000 &&
+                sortedByBal.get(2).getBalance() == 2000;
+        System.out.println("   -> [PASSED] Sorted order verified: " + (orderValid ? "[9000, 5000, 2000] OK" : "[FAILED]"));
+
+        // 4. Comparable<Account> natural ordering by accountNumber
+        System.out.println("\n4. Testing Natural Ordering via Comparable<Account>.compareTo():");
+        ArrayList<Account> sortedByAccNo = store.sortedByAccountNumber();
+        System.out.println("   Accounts sorted by account number (Comparable):");
+        for (Account a : sortedByAccNo) {
+            System.out.println("   -> " + a.getAccountNumber() + " : " + a.getOwnerName() + " (Rs. " + a.getBalance() + ")");
+        }
+
+        // 5. Supplementary Problem 1: Accounts with balance above threshold
+        System.out.println("\n5. Supplementary Problem 1: Accounts with balance strictly above Rs. 4000:");
+        ArrayList<Account> above4k = store.getAccountsWithBalanceAbove(4000);
+        for (Account a : above4k) {
+            System.out.println("   -> " + a.getAccountNumber() + " [Rs. " + a.getBalance() + "] (" + a.getOwnerName() + ")");
+        }
+
+        // 6. Supplementary Problem 2: Accounts kept in sorted key order using TreeMap
+        System.out.println("\n6. Supplementary Problem 2: TreeMap for sorted key order:");
+        TreeMap<String, Account> treeMap = store.getAccountsInKeyOrder();
+        System.out.println("   TreeMap keys (naturally sorted): " + treeMap.keySet());
+        treeMap.forEach((k, v) -> System.out.println(String.format("   -> Key: %s | Account: %s [Rs. %d]", k, v.getOwnerName(), v.getBalance())));
+
+        // 7. TransactionProcessor with ConcurrentHashMap for thread-safe shared accounts
+        System.out.println("\n7. Practical 12 Requirement 5: TransactionProcessor with ConcurrentHashMap:");
+        TransactionProcessor concurrentProcessor = new TransactionProcessor(4);
+        concurrentProcessor.registerAccount(acc1);
+        concurrentProcessor.registerAccount(acc2);
+        concurrentProcessor.registerAccount(acc3);
+
+        System.out.println("   Registered accounts into thread-safe ConcurrentHashMap.");
+        System.out.println("   Submitting 10 concurrent pool deposits of Rs. 100 on AC0001...");
+        for (int i = 0; i < 10; i++) {
+            concurrentProcessor.submitDeposit("AC0001", 100);
+        }
+        concurrentProcessor.stop();
+        System.out.println("   AC0001 Balance after concurrent updates: Rs. " + acc1.getBalance() + " (Expected: Rs. 6000)");
+
+        // 8. Transaction History in ArrayList<String>
+        store.recordTransaction("Demonstrated Practical 12 Collections Framework Milestone 2");
+        System.out.println("\n8. ArrayList Transaction History Log (" + store.getTransactionHistory().size() + " entries):");
+        for (String record : store.getTransactionHistory()) {
+            System.out.println("   * " + record);
+        }
+        System.out.println("--------------------------------------------------------------------------------------\n");
+
+        // =========================================================================
+        // PRACTICAL 11 DEMONSTRATION: SERIALIZATION, TRANSIENT FIELDS & NIO REPORT
+        // =========================================================================
+        System.out.println("--- [PRACTICAL 11 DEMONSTRATION: SERIALIZATION, TRANSIENT FIELDS & NIO REPORT] ---");
 
         // 1. Serialization Round-Trip with StatePersister and Transient Field Validation
         System.out.println("\n1. Testing Model Persistence (StatePersister.save & load with transient field check):");
         Path accountsPath = Paths.get("data", "accounts.dat");
 
         // Set transient session tokens before serialization
-        accounts[0].setSessionToken("SESSION-TOKEN-DAKSH-991");
-        accounts[1].setSessionToken("SESSION-TOKEN-SHARMA-882");
-        accounts[2].setSessionToken("SESSION-TOKEN-ALICE-773");
+        acc1.setSessionToken("SESSION-TOKEN-DAKSH-991");
+        acc2.setSessionToken("SESSION-TOKEN-SHARMA-882");
+        acc3.setSessionToken("SESSION-TOKEN-ALICE-773");
 
         System.out.println("   Original Accounts with transient session tokens:");
-        for (int i = 0; i < accountCount; i++) {
-            System.out.println(String.format("   -> %s [SessionToken=%s]", accounts[i], accounts[i].getSessionToken()));
+        for (Account a : store.getAll()) {
+            System.out.println(String.format("   -> %s [SessionToken=%s]", a, a.getSessionToken()));
         }
 
         try {
-            // Save active accounts slice
-            Account[] savedSlice = new Account[accountCount];
-            System.arraycopy(accounts, 0, savedSlice, 0, accountCount);
-            StatePersister.save(savedSlice, accountsPath);
-            System.out.println("   [SAVED] Successfully serialized " + accountCount + " accounts to " + accountsPath.toAbsolutePath());
+            // Save active accounts collection
+            StatePersister.save(store.getAll(), accountsPath);
+            System.out.println("   [SAVED] Successfully serialized " + store.size() + " accounts to " + accountsPath.toAbsolutePath());
 
             // Reload accounts from file
             Account[] reloadedAccounts = StatePersister.load(accountsPath);
@@ -81,9 +182,9 @@ public class MiniBank {
             }
 
             // Confirm integrity
-            boolean dataSurvived = (reloadedAccounts.length == accountCount) &&
-                    reloadedAccounts[0].getAccountNumber().equals(accounts[0].getAccountNumber()) &&
-                    reloadedAccounts[0].getBalance() == accounts[0].getBalance() &&
+            boolean dataSurvived = (reloadedAccounts.length == store.size()) &&
+                    reloadedAccounts[0].getAccountNumber().equals(acc1.getAccountNumber()) &&
+                    reloadedAccounts[0].getBalance() == acc1.getBalance() &&
                     reloadedAccounts[0].getSessionToken() == null;
             System.out.println("   Persistence Validation: " + (dataSurvived ? "[PASSED - State Restored, Transient Omitted]" : "[FAILED]"));
         } catch (Exception e) {
@@ -99,7 +200,6 @@ public class MiniBank {
         Path nonLogDoc = logsDir.resolve("audit_readme.txt");
 
         try {
-            // Clean/ensure logs directory
             if (!Files.exists(logsDir)) {
                 Files.createDirectories(logsDir);
             }
@@ -113,7 +213,6 @@ public class MiniBank {
             TransactionLog.append(branch2Log, "WITHDRAW AC0001 300");
             TransactionLog.append(branch2Log, "WITHDRAW AC0003 5000");
 
-            // Create an empty log file and a non-log file to test skipping logic
             Files.writeString(emptyLog, ""); // Empty file (0 bytes)
             Files.writeString(nonLogDoc, "This is an audit documentation text file, not a .log transaction file.");
 
@@ -136,16 +235,18 @@ public class MiniBank {
 
         System.out.println("--------------------------------------------------------------------------------------\n");
 
+        // =========================================================================
+        // PRACTICAL 10 DEMONSTRATION: THREAD POOLS, PRODUCER-CONSUMER & DEADLOCKS
+        // =========================================================================
         System.out.println("--- [PRACTICAL 10 DEMONSTRATION: THREAD POOLS, PRODUCER-CONSUMER & DEADLOCKS] ---");
 
         // 1. Managed Thread Pool Batch Processing (TransactionProcessor)
         System.out.println("\n1. Testing Managed Thread Pool (TransactionProcessor with 4 Threads):");
         TransactionProcessor processor = new TransactionProcessor(4);
-        Account poolAccount = accounts[0];
+        Account poolAccount = acc1;
         System.out.println("   Submitting 12 concurrent transaction tasks to fixed thread pool...");
 
         for (int i = 1; i <= 12; i++) {
-            final int taskId = i;
             final long depositAmt = 100;
             processor.submit(() -> {
                 try {
@@ -162,7 +263,7 @@ public class MiniBank {
         // 2. Inter-Thread Coordination: Producer-Consumer with wait() and notify()
         System.out.println("\n2. Testing Producer-Consumer Transaction Buffer (wait/notify):");
         TransactionBuffer txQueue = new TransactionBuffer(3);
-        Account consumerTargetAccount = accounts[1];
+        Account consumerTargetAccount = acc2;
         int totalQueueItems = 6;
 
         Thread producerThread = new Thread(() -> {
@@ -240,8 +341,8 @@ public class MiniBank {
 
         // (b) Deadlock-Free Safe Transfer with Canonical Lock Ordering
         System.out.println("\n   (b) Executing Deadlock-Free Transfers (Consistent Lower Account Number First):");
-        Account safeA = accounts[0]; // AC0001
-        Account safeB = accounts[1]; // AC0002
+        Account safeA = acc1; // AC0001
+        Account safeB = acc2; // AC0002
 
         Thread safe1 = new Thread(() -> {
             try {
@@ -272,28 +373,36 @@ public class MiniBank {
 
         System.out.println("-----------------------------------------------------------\n");
 
+        // =========================================================================
+        // INTERACTIVE BANKING SHELL (POWERED BY ACCOUNTSTORE COLLECTIONS)
+        // =========================================================================
         Scanner scanner = new Scanner(System.in);
         boolean keepRunning = true;
 
         while (keepRunning) {
             System.out.println("\n----------------- MINIBANK ENTERPRISE ENGINE -----------------");
-            System.out.println("1. Open Account (Savings / Current / Fixed Deposit)");
-            System.out.println("2. Deposit");
-            System.out.println("3. Withdraw");
-            System.out.println("4. Transfer (Safe Deadlock-Free)");
-            System.out.println("5. View Official Account Statement");
-            System.out.println("6. Save Accounts to Disk (StatePersister.save)");
-            System.out.println("7. Reload Accounts from Disk (StatePersister.load)");
-            System.out.println("8. Append Transaction Log (TransactionLog.append)");
-            System.out.println("9. Generate End-of-Day Audit Report (ReportGenerator)");
-            System.out.println("10. Validate Account Metadata via Reflection");
-            System.out.println("11. Run Thread Pool Batch Processing Benchmark (Practical 10)");
-            System.out.println("12. Run Concurrency & Race Condition Benchmark (Practical 9)");
-            System.out.println("13. Verify Customer Credentials (Static Import Validator)");
-            System.out.println("14. Check Bank Working Hours");
-            System.out.println("15. Exit");
+            System.out.println("1.  Open Account (Savings / Current / Fixed Deposit)");
+            System.out.println("2.  Deposit");
+            System.out.println("3.  Withdraw");
+            System.out.println("4.  Transfer (Deadlock-Free Lock Ordering)");
+            System.out.println("5.  View Official Account Statement");
+            System.out.println("6.  List All Accounts (HashMap AccountStore)");
+            System.out.println("7.  List Accounts Sorted by Balance (Comparator: Highest First)");
+            System.out.println("8.  List Accounts with Balance Above Threshold (Supplementary 1)");
+            System.out.println("9.  List Accounts in Key Order (TreeMap: Supplementary 2)");
+            System.out.println("10. View Transaction History (ArrayList<String>)");
+            System.out.println("11. Save Accounts to Disk (StatePersister.save)");
+            System.out.println("12. Reload Accounts from Disk (StatePersister.load)");
+            System.out.println("13. Append Transaction Log (TransactionLog.append)");
+            System.out.println("14. Generate End-of-Day Audit Report (ReportGenerator)");
+            System.out.println("15. Validate Account Metadata via Reflection");
+            System.out.println("16. Run Thread Pool Batch Processing Benchmark");
+            System.out.println("17. Run Concurrency & Race Condition Benchmark");
+            System.out.println("18. Verify Customer Credentials");
+            System.out.println("19. Check Bank Working Hours");
+            System.out.println("20. Exit");
             System.out.println("-------------------------------------------------------------");
-            System.out.print("Please enter your choice (1-15): ");
+            System.out.print("Please enter your choice (1-20): ");
 
             int choice = -1;
             if (scanner.hasNextInt()) {
@@ -309,36 +418,37 @@ public class MiniBank {
                 case 3 -> MenuOption.WITHDRAW;
                 case 4 -> MenuOption.TRANSFER;
                 case 5 -> MenuOption.VIEW_STATEMENT;
-                case 6 -> MenuOption.SAVE_STATE;
-                case 7 -> MenuOption.LOAD_STATE;
-                case 8 -> MenuOption.APPEND_LOG;
-                case 9 -> MenuOption.GENERATE_REPORT;
-                case 10 -> MenuOption.VALIDATE_ACCOUNT;
-                case 11 -> MenuOption.THREAD_POOL_BATCH;
-                case 12 -> MenuOption.CONCURRENCY_TEST;
-                case 13 -> MenuOption.VERIFY_CREDENTIALS;
-                case 14 -> MenuOption.WORKING_HOURS;
-                case 15 -> MenuOption.EXIT;
+                case 6 -> MenuOption.LIST_ALL_ACCOUNTS;
+                case 7 -> MenuOption.ACCOUNTS_SORTED_BY_BALANCE;
+                case 8 -> MenuOption.ACCOUNTS_ABOVE_BALANCE;
+                case 9 -> MenuOption.ACCOUNTS_TREEMAP_ORDER;
+                case 10 -> MenuOption.VIEW_TRANSACTION_HISTORY;
+                case 11 -> MenuOption.SAVE_STATE;
+                case 12 -> MenuOption.LOAD_STATE;
+                case 13 -> MenuOption.APPEND_LOG;
+                case 14 -> MenuOption.GENERATE_REPORT;
+                case 15 -> MenuOption.VALIDATE_ACCOUNT;
+                case 16 -> MenuOption.THREAD_POOL_BATCH;
+                case 17 -> MenuOption.CONCURRENCY_TEST;
+                case 18 -> MenuOption.VERIFY_CREDENTIALS;
+                case 19 -> MenuOption.WORKING_HOURS;
+                case 20 -> MenuOption.EXIT;
                 default -> null;
             };
 
             if (selectedOption == null) {
-                System.out.println("\n[ERROR] Invalid menu choice. Please select a valid number between 1 and 15.");
+                System.out.println("\n[ERROR] Invalid menu choice. Please select a valid number between 1 and 20.");
                 continue;
             }
 
             switch (selectedOption) {
                 case OPEN_ACCOUNT -> {
-                    if (accountCount >= accounts.length) {
-                        System.out.println("\n[ERROR] Bank database is full.");
-                        break;
-                    }
                     System.out.println("\nSelect Account Type:");
                     System.out.println("1. Savings Account (4.0% Interest, Min Balance, Premium Status)");
                     System.out.println("2. Current Account (0.0% Interest, Overdraft Facility)");
                     System.out.println("3. Fixed Deposit Account (7.0% Interest, Locked Deposit, Premium Status)");
                     System.out.print("Choice (1-3): ");
-                    
+
                     int accTypeChoice = 1;
                     if (scanner.hasNextInt()) {
                         accTypeChoice = scanner.nextInt();
@@ -363,39 +473,33 @@ public class MiniBank {
                         }
                         case 2 -> {
                             System.out.print("Enter overdraft limit (e.g. 10000): ");
-                            long odLimit = scanner.nextLong();
+                            long overdraft = scanner.nextLong();
                             scanner.nextLine();
-                            newAcc = new CurrentAccount(name, openingBal, odLimit);
+                            newAcc = new CurrentAccount(name, openingBal, overdraft);
                         }
                         case 3 -> {
                             newAcc = new FixedDepositAccount(name, openingBal);
                         }
                         default -> {
-                            System.out.println("Invalid type selected. Defaulting to Savings Account.");
-                            newAcc = new SavingsAccount(name, openingBal);
+                            System.out.println("[WARN] Unknown type. Defaulting to Savings Account.");
+                            newAcc = new SavingsAccount(name, openingBal, 500);
                         }
                     }
 
-                    String[] validationErrors = AnnotationValidator.validate(newAcc);
-                    if (validationErrors.length > 0) {
-                        System.out.println("\n[METADATA WARNING] Account created with annotation warnings:");
-                        for (String err : validationErrors) {
-                            System.out.println(" -> " + err);
-                        }
-                    }
-
-                    accounts[accountCount++] = newAcc;
-                    System.out.println("\n[SUCCESS] Account successfully opened:\n" + newAcc);
+                    store.add(newAcc);
+                    System.out.println("\n[SUCCESS] Account opened successfully in AccountStore (HashMap): " + newAcc);
                 }
                 case DEPOSIT -> {
                     System.out.print("Enter Account Number (e.g. AC0001): ");
                     String accNo = scanner.nextLine().trim();
                     try {
-                        Account acc = findAccount(accounts, accountCount, accNo);
+                        Account acc = findAccount(store, accNo);
                         System.out.print("Enter amount to deposit: ");
                         long amount = scanner.nextLong();
                         scanner.nextLine();
+
                         acc.deposit(amount);
+                        store.recordTransaction(String.format("Deposited Rs. %d into %s. New Balance: Rs. %d", amount, accNo, acc.getBalance()));
                         System.out.println("[SUCCESS] Deposit completed. Updated details: " + acc);
                     } catch (AccountNotFoundException | InvalidAmountException e) {
                         System.out.println("\n[DEPOSIT FAILED] " + e.getMessage());
@@ -405,12 +509,13 @@ public class MiniBank {
                     System.out.print("Enter Account Number (e.g. AC0001): ");
                     String accNo = scanner.nextLine().trim();
                     try {
-                        Account acc = findAccount(accounts, accountCount, accNo);
+                        Account acc = findAccount(store, accNo);
                         System.out.print("Enter amount to withdraw: ");
                         long amount = scanner.nextLong();
                         scanner.nextLine();
 
                         acc.withdraw(amount);
+                        store.recordTransaction(String.format("Withdrew Rs. %d from %s. New Balance: Rs. %d", amount, accNo, acc.getBalance()));
                         System.out.println("[SUCCESS] Withdrawal completed. Updated details: " + acc);
                     } catch (AccountNotFoundException e) {
                         System.out.println("\n[ERROR] " + e.getMessage());
@@ -428,16 +533,17 @@ public class MiniBank {
                     String srcAcc = scanner.nextLine().trim();
                     System.out.print("Enter Destination Account Number (Receiver): ");
                     String destAcc = scanner.nextLine().trim();
-                    
+
                     try {
-                        Account src = findAccount(accounts, accountCount, srcAcc);
-                        Account dest = findAccount(accounts, accountCount, destAcc);
-                        
+                        Account src = findAccount(store, srcAcc);
+                        Account dest = findAccount(store, destAcc);
+
                         System.out.print("Enter amount to transfer: ");
                         long amount = scanner.nextLong();
                         scanner.nextLine();
 
                         TransferService.transferSafe(src, dest, amount);
+                        store.recordTransaction(String.format("Transferred Rs. %d from %s to %s", amount, srcAcc, destAcc));
                     } catch (AccountNotFoundException e) {
                         System.out.println("\n[TRANSFER FAILED] " + e.getMessage());
                     } catch (BankException e) {
@@ -448,11 +554,54 @@ public class MiniBank {
                     System.out.print("Enter Account Number (e.g. AC0001): ");
                     String accNo = scanner.nextLine().trim();
                     try {
-                        Account acc = findAccount(accounts, accountCount, accNo);
+                        Account acc = findAccount(store, accNo);
                         System.out.println("\n" + StatementFormatter.buildStatement(acc));
                         System.out.println(String.format("5-Year Compound Projection: Rs. %.2f", acc.projectedBalance(5)));
                     } catch (AccountNotFoundException e) {
                         System.out.println("\n[ERROR] " + e.getMessage());
+                    }
+                }
+                case LIST_ALL_ACCOUNTS -> {
+                    System.out.println("\n--- All Accounts in AccountStore (Total: " + store.size() + ") ---");
+                    for (Account a : store.getAll()) {
+                        System.out.println(" -> " + a);
+                    }
+                }
+                case ACCOUNTS_SORTED_BY_BALANCE -> {
+                    System.out.println("\n--- Accounts Sorted by Balance (Comparator: Highest First) ---");
+                    ArrayList<Account> sorted = store.sortedByBalance();
+                    for (int i = 0; i < sorted.size(); i++) {
+                        Account a = sorted.get(i);
+                        System.out.println(String.format(" [%d] %-8s | Owner: %-18s | Balance: Rs. %d",
+                                i + 1, a.getAccountNumber(), a.getOwnerName(), a.getBalance()));
+                    }
+                }
+                case ACCOUNTS_ABOVE_BALANCE -> {
+                    System.out.print("Enter minimum balance threshold (in Rs.): ");
+                    long thresh = scanner.nextLong();
+                    scanner.nextLine();
+                    ArrayList<Account> filtered = store.getAccountsWithBalanceAbove(thresh);
+                    System.out.println(String.format("\n--- Accounts with Balance > Rs. %d (Found: %d) ---", thresh, filtered.size()));
+                    for (Account a : filtered) {
+                        System.out.println(String.format(" -> %s : %s | Rs. %d", a.getAccountNumber(), a.getOwnerName(), a.getBalance()));
+                    }
+                }
+                case ACCOUNTS_TREEMAP_ORDER -> {
+                    System.out.println("\n--- Accounts in Sorted Key Order (TreeMap<String, Account>) ---");
+                    TreeMap<String, Account> sortedKeys = store.getAccountsInKeyOrder();
+                    sortedKeys.forEach((k, v) -> {
+                        System.out.println(String.format(" [Key: %s] -> %-18s | Balance: Rs. %d", k, v.getOwnerName(), v.getBalance()));
+                    });
+                }
+                case VIEW_TRANSACTION_HISTORY -> {
+                    System.out.println("\n--- AccountStore Transaction Audit Log (ArrayList<String>) ---");
+                    ArrayList<String> history = store.getTransactionHistory();
+                    if (history.isEmpty()) {
+                        System.out.println("No transactions recorded yet.");
+                    } else {
+                        for (int i = 0; i < history.size(); i++) {
+                            System.out.println(String.format(" [%2d] %s", i + 1, history.get(i)));
+                        }
                     }
                 }
                 case SAVE_STATE -> {
@@ -460,10 +609,8 @@ public class MiniBank {
                     String pathInput = scanner.nextLine().trim();
                     Path savePath = pathInput.isEmpty() ? Paths.get("data", "accounts.dat") : Paths.get(pathInput);
                     try {
-                        Account[] toSave = new Account[accountCount];
-                        System.arraycopy(accounts, 0, toSave, 0, accountCount);
-                        StatePersister.save(toSave, savePath);
-                        System.out.println("\n[SUCCESS] Successfully saved " + accountCount + " accounts to " + savePath.toAbsolutePath());
+                        StatePersister.save(store.getAll(), savePath);
+                        System.out.println("\n[SUCCESS] Successfully saved " + store.size() + " accounts to " + savePath.toAbsolutePath());
                     } catch (IOException e) {
                         System.out.println("\n[SAVE ERROR] Failed to serialize accounts: " + e.getMessage());
                     }
@@ -474,11 +621,13 @@ public class MiniBank {
                     Path loadPath = pathInput.isEmpty() ? Paths.get("data", "accounts.dat") : Paths.get(pathInput);
                     try {
                         Account[] loaded = StatePersister.load(loadPath);
-                        System.arraycopy(loaded, 0, accounts, 0, loaded.length);
-                        accountCount = loaded.length;
-                        System.out.println("\n[SUCCESS] Successfully reloaded " + loaded.length + " accounts from " + loadPath.toAbsolutePath() + ":");
-                        for (int i = 0; i < accountCount; i++) {
-                            System.out.println(" -> " + accounts[i]);
+                        store.clear();
+                        for (Account a : loaded) {
+                            store.add(a);
+                        }
+                        System.out.println("\n[SUCCESS] Successfully reloaded " + loaded.length + " accounts into AccountStore from " + loadPath.toAbsolutePath() + ":");
+                        for (Account a : store.getAll()) {
+                            System.out.println(" -> " + a);
                         }
                     } catch (Exception e) {
                         System.out.println("\n[LOAD ERROR] Failed to deserialize accounts: " + e.getMessage());
@@ -518,7 +667,7 @@ public class MiniBank {
                     System.out.print("Enter Account Number to validate: ");
                     String accNo = scanner.nextLine().trim();
                     try {
-                        Account acc = findAccount(accounts, accountCount, accNo);
+                        Account acc = findAccount(store, accNo);
                         System.out.println("\n--- Inspecting Metadata via AnnotationValidator ---");
                         String[] errors = AnnotationValidator.validate(acc);
                         if (errors.length == 0) {
@@ -536,17 +685,25 @@ public class MiniBank {
                 case THREAD_POOL_BATCH -> {
                     System.out.println("\n--- Launching 20 Asynchronous Pool Transactions ---");
                     TransactionProcessor benchProcessor = new TransactionProcessor(4);
-                    Account target = accounts[0];
-                    for (int i = 0; i < 20; i++) {
-                        benchProcessor.submit(() -> {
-                            try {
-                                target.deposit(50);
-                            } catch (Exception ignored) {}
-                        });
+                    Account target = store.get("AC0001");
+                    if (target == null && store.size() > 0) {
+                        target = store.getAll().get(0);
                     }
-                    benchProcessor.stop();
-                    benchProcessor.printExecutionStats();
-                    System.out.println("Batch execution completed! AC0001 balance: Rs. " + target.getBalance());
+                    if (target != null) {
+                        final Account tAcc = target;
+                        for (int i = 0; i < 20; i++) {
+                            benchProcessor.submit(() -> {
+                                try {
+                                    tAcc.deposit(50);
+                                } catch (Exception ignored) {}
+                            });
+                        }
+                        benchProcessor.stop();
+                        benchProcessor.printExecutionStats();
+                        System.out.println("Batch execution completed! " + target.getAccountNumber() + " balance: Rs. " + target.getBalance());
+                    } else {
+                        System.out.println("No account available for batch testing.");
+                    }
                 }
                 case CONCURRENCY_TEST -> {
                     System.out.println("\n--- Running Live Multithreading Concurrency Benchmark ---");

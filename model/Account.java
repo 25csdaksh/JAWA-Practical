@@ -11,7 +11,7 @@ import model.annotation.Positive;
 import service.InterestBearing;
 import service.Transactable;
 
-public abstract class Account implements Transactable, InterestBearing, Serializable {
+public abstract class Account implements Transactable, InterestBearing, Serializable, Comparable<Account> {
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -172,6 +172,14 @@ public abstract class Account implements Transactable, InterestBearing, Serializ
     @Override
     public int hashCode() {
         return Objects.hash(accountNumber);
+    }
+
+    @Override
+    public int compareTo(Account other) {
+        if (other == null) {
+            return 1;
+        }
+        return this.accountNumber.compareTo(other.accountNumber);
     }
 
     public String getStatement() {
