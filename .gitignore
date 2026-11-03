@@ -11,3 +11,5 @@ logs/
 reports/
 *.dat
 *.ser
+word_submissions/
+*.docx
