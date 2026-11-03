@@ -52,16 +52,64 @@ public class MiniBank {
         BankInfo header = new BankInfo("MiniBank India", "Gujarat University Campus");
         System.out.println(header);
 
-        System.out.println("\n======================================================================================");
-        System.out.println("--- [PRACTICAL 12 DEMONSTRATION: COLLECTIONS FRAMEWORK & THREAD-SAFE CONCURRENT MAP] ---");
-        System.out.println("======================================================================================");
-
-        AccountStore store = new AccountStore();
-
         Account acc1 = new SavingsAccount("Daksh Soni", 5000, 1000);
         Account acc2 = new CurrentAccount("Prof. Sharma", 2000, 15000);
         Account acc3 = new FixedDepositAccount("Alice Smith", 9000);
 
+        System.out.println("\n======================================================================================");
+        System.out.println("--- [PRACTICAL 13 DEMONSTRATION: GENERIC REPOSITORY<T>, REFLECTION @ID & BOUNDS] ---");
+        System.out.println("======================================================================================");
+
+        Repository<Account> accountRepo = new Repository<>();
+        accountRepo.saveAll(acc1, acc2, acc3);
+        System.out.println("\n1. Saved 3 Accounts into Generic Repository<Account> via reflection @Id:");
+        System.out.println("   Repository Total Stored Items (count()): " + accountRepo.count());
+
+        System.out.println("\n2. Testing findById(\"AC0002\") lookup via extracted @Id key:");
+        Account foundAccount = accountRepo.findById("AC0002");
+        System.out.println("   findById(\"AC0002\") returned: " + foundAccount);
+        if (foundAccount != null && foundAccount.getAccountNumber().equals("AC0002")) {
+            System.out.println("   -> [PASSED] Matching account AC0002 successfully retrieved!");
+        } else {
+            System.out.println("   -> [FAILED] Account lookup failed.");
+        }
+
+        System.out.println("\n3. Testing findAll() - Listing all accounts from Repository<Account>:");
+        ArrayList<Account> allAccounts = accountRepo.findAll();
+        for (int i = 0; i < allAccounts.size(); i++) {
+            System.out.println(String.format("   [%d] %s", i + 1, allAccounts.get(i)));
+        }
+
+        System.out.println("\n4. Testing delete(\"AC0003\"):");
+        boolean deleted = accountRepo.delete("AC0003");
+        System.out.println("   Deleted AC0003: " + deleted + " | Remaining count: " + accountRepo.count());
+        accountRepo.save(acc3);
+
+        System.out.println("\n5. Supplementary Problem 1: Reusing Repository<Customer> without code modification:");
+        Repository<Customer> customerRepo = new Repository<>();
+        Customer c1 = new Customer("Daksh Soni", "daksh@example.com", "9876543210", new Customer.Address("101 Tech Park", "Ahmedabad", "380009"));
+        Customer c2 = new Customer("Prof. Sharma", "sharma@example.com", "9123456780", new Customer.Address("202 Uni Campus", "Ahmedabad", "380015"));
+        customerRepo.saveAll(c1, c2);
+
+        System.out.println("   Saved " + customerRepo.count() + " Customers into Repository<Customer>:");
+        for (Customer c : customerRepo.findAll()) {
+            System.out.println("   -> Extracted @Id [" + c.getCustomerId() + "]: " + c);
+        }
+        System.out.println("   Testing findById on Customer: " + customerRepo.findById(c1.getCustomerId()));
+        System.out.println("   -> [PASSED] Generic Repository<T> works seamlessly for multiple domain entities!");
+
+        System.out.println("\n6. Testing Bounded Type Parameter Method Repository.average(<N extends Number>):");
+        Integer[] balances = {5000, 2000, 9000};
+        Double[] interestRates = {4.0, 0.0, 7.0};
+        System.out.printf("   Average Account Balance (Integer[]): Rs. %.2f%n", Repository.average(balances));
+        System.out.printf("   Average Interest Rate (Double[])  : %.2f%%%n", Repository.average(interestRates));
+        System.out.println("--------------------------------------------------------------------------------------\n");
+
+        System.out.println("======================================================================================");
+        System.out.println("--- [PRACTICAL 12 DEMONSTRATION: COLLECTIONS FRAMEWORK & THREAD-SAFE CONCURRENT MAP] ---");
+        System.out.println("======================================================================================");
+
+        AccountStore store = new AccountStore();
         store.add(acc1);
         store.add(acc2);
         store.add(acc3);

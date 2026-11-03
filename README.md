@@ -1,6 +1,6 @@
 # OOP Lab Practical Portfolio — Semester Work
 
-This repository contains the complete Java solutions for **Practical 1** through **Practical 12**, organized into practice programs and the modular, concurrent, thread-safe, and fault-tolerant **MiniBank** enterprise project.
+This repository contains the complete Java solutions for **Practical 1** through **Practical 13**, organized into practice programs and the modular, concurrent, thread-safe, and fault-tolerant **MiniBank** enterprise project.
 
 ---
 
@@ -40,6 +40,13 @@ A.lab practical/
 │   │   └── UniqueVisitorsDemo.java
 │   └── leaderboard/         (Part A3: Gaming Leaderboard with Map & Tie-Breaker Comparator)
 │       └── LeaderboardDemo.java
+├── lab-13/                  (Practical 13 — Practice Programs)
+│   ├── containers/          (Part A1: Generic Box<T>, Pair<A, B> & <T> getFirst())
+│   │   └── GenericContainersDemo.java
+│   ├── bounded/             (Part A2: Bounded Stats <N extends Number> average())
+│   │   └── BoundedStatsDemo.java
+│   └── stack/               (Part A3: Generic ArrayStack<T> Container with Underflow Handling)
+│       └── GenericStackDemo.java
 ├── exception/               (Custom Checked Exception Hierarchy)
 │   ├── BankException.java
 │   ├── InsufficientFundsException.java
@@ -57,6 +64,7 @@ A.lab practical/
 │   ├── FixedDepositAccount.java (Thread-safe fixed deposit account)
 │   └── ...
 ├── service/                 (Core Capabilities, Processors & Coordination)
+│   ├── Repository.java           (Practical 13 — Generic Repository<T>, Reflection @Id, @SafeVarargs saveAll, Bounded average)
 │   ├── AccountStore.java         (Practical 12 — HashMap Storage, ArrayList Audit, Comparator Sort)
 │   ├── TransactionProcessor.java (Practical 12 — Thread-Safe ConcurrentHashMap Shared Accounts Engine)
 │   ├── TransactionBuffer.java    (Practical 10 — Bounded Producer-Consumer Transaction Queue)
@@ -72,7 +80,7 @@ A.lab practical/
 │   ├── Validator.java
 │   ├── StatementFormatter.java
 │   └── CommandParser.java
-├── MiniBank.java            (Main Banking Shell with Collections Milestone 2, Multi-threading & NIO)
+├── MiniBank.java            (Main Banking Shell with Generic Repository, Collections Milestone 2, Multi-threading & NIO)
 ├── MANIFEST.MF              (JAR Manifest specifying Main-Class: MiniBank)
 ├── minibank.jar             (Packaged Runnable JAR Artifact)
 ├── .gitignore
@@ -81,9 +89,9 @@ A.lab practical/
 
 ---
 
-## 🗺️ Practical-Wise Project & Lab Roadmap (Practical 1 to Practical 12)
+## 🗺️ Practical-Wise Project & Lab Roadmap (Practical 1 to Practical 13)
 
-This roadmap details the exact problem statements, practice programs (`lab-NN/`), and the step-by-step modular progression of the **MiniBank** project across all 12 practicals:
+This roadmap details the exact problem statements, practice programs (`lab-NN/`), and the step-by-step modular progression of the **MiniBank** project across all 13 practicals:
 
 | Practical No. | Core Java Theme / Focus | Part A: Practice Programs (`lab-NN/`) | Part B: MiniBank Project Work & Milestone Deliverables |
 |:---:|---|---|---|
@@ -99,6 +107,7 @@ This roadmap details the exact problem statements, practice programs (`lab-NN/`)
 | **Practical 10** | Thread Pools, Producer-Consumer & Deadlocks | • `ThreadPoolDriver` (Fixed thread pool & thread recycling)<br>• `ProducerConsumerDriver` (Bounded buffer with wait/notify)<br>• `DeadlockDriver` (Deadlock reproduction & lock ordering) | **Batch Processing & Safe Transfers**:<br>• `service.TransactionProcessor` with fixed thread pool<br>• `service.TransactionBuffer` bounded queue coordinating threads via `wait()` and `notify()`<br>• Deadlock-free `TransferService` with canonical lock ordering |
 | **Practical 11** | Java I/O Streams, Serialization & NIO | • `SaveLoadDemo` (Object serialization & transient fields)<br>• `LogAnalyzerDemo` (NIO file reading & metadata inspection)<br>• `TreeWalkerDemo` (Recursive walkFileTree audit) | **MiniBank Persistence & Financial Audit**:<br>• `StatePersister` saving/loading accounts via `ObjectOutputStream`/`ObjectInputStream`<br>• `transient String sessionToken` serialization exclusion<br>• Append-only `TransactionLog` and NIO `ReportGenerator` |
 | **Practical 12** | Collections Framework & Sorting (**Milestone 2**) | • `WordFrequencyDemo` (`HashMap` word counter & `Comparator`)<br>• `UniqueVisitorsDemo` (`HashSet` deduplication & `LinkedHashSet` first-seen)<br>• `LeaderboardDemo` (Map player scores & tie-breaking Comparator) | **Collections Storage Engine Upgrade**:<br>• `service.AccountStore` replacing arrays with `HashMap<String, Account>`<br>• `ArrayList<String>` transaction audit log<br>• `sortedByBalance()` using custom `Comparator`<br>• `Comparable<Account>` natural account number ordering<br>• Thread-safe `ConcurrentHashMap` in `TransactionProcessor`<br>• `TreeMap` sorted key order and balance threshold filter |
+| **Practical 13** | Generics, Type Erasure & Repository Pattern | • `GenericContainersDemo` (`Box<T>`, `Pair<A, B>`, `<T> getFirst()` generic method)<br>• `BoundedStatsDemo` (`<N extends Number> average()`)<br>• `GenericStackDemo` (Array-backed `ArrayStack<T>` with underflow protection) | **Reusable Generic Repository Pattern**:<br>• Generic `service.Repository<T>` holding `HashMap<String, T>`<br>• Reflection extraction of `@Id` annotated fields across class hierarchies<br>• `@SafeVarargs saveAll(T... items)` batch persistence<br>• Bounded generic average utility `Repository.average(<N extends Number>)`<br>• Reused seamlessly across both `Account` and `Customer` entities |
 
 ---
 
@@ -108,7 +117,7 @@ Make sure you have JDK 17 or higher installed on your system. Run all commands f
 
 ### 1. Compiling MiniBank & All Packages into `bin/`
 ```powershell
-javac -d bin exception/*.java model/annotation/*.java service/*.java model/*.java util/*.java MiniBank.java lab-12/wordfreq/*.java lab-12/visitors/*.java lab-12/leaderboard/*.java
+javac -d bin exception/*.java model/annotation/*.java service/*.java model/*.java util/*.java MiniBank.java lab-13/containers/*.java lab-13/bounded/*.java lab-13/stack/*.java
 ```
 
 ### 2. Building the Runnable JAR (`minibank.jar`)
@@ -116,18 +125,18 @@ javac -d bin exception/*.java model/annotation/*.java service/*.java model/*.jav
 jar cfm minibank.jar MANIFEST.MF -C bin .
 ```
 
-### 3. Running Practical 12 Practice Programs
-* **Word Frequency (HashMap & Comparator):**
+### 3. Running Practical 13 Practice Programs
+* **Generic Containers (Box, Pair & getFirst):**
   ```powershell
-  java -cp bin wordfreq.WordFrequencyDemo
+  java -cp bin containers.GenericContainersDemo
   ```
-* **Unique Visitors (HashSet & LinkedHashSet):**
+* **Bounded Stats (<N extends Number>):**
   ```powershell
-  java -cp bin visitors.UniqueVisitorsDemo
+  java -cp bin bounded.BoundedStatsDemo
   ```
-* **Leaderboard (Map & Tie-Breaking Comparator):**
+* **Generic Array-Backed Stack:**
   ```powershell
-  java -cp bin leaderboard.LeaderboardDemo
+  java -cp bin stack.GenericStackDemo
   ```
 
 ### 4. Running the MiniBank Runnable JAR
@@ -353,7 +362,54 @@ java -jar minibank.jar
 
 ---
 
+### 💡 Practical 13 Questions (Generics, Type Erasure & Repository Pattern)
+
+#### 1. What problem do generics solve compared with using Object?
+* **Compile-Time Type Safety:** Without generics, collections stored raw `Object` references, allowing accidental insertion of mismatched types (e.g., adding an `Integer` into a list intended for `String`). Errors only surfaced at runtime as `ClassCastException`. Generics detect type mismatches at compile time.
+* **Elimination of Explicit Casting:** With raw `Object`, every retrieval required an explicit cast (e.g., `String s = (String) list.get(0);`). Generics allow direct assignment (`String s = list.get(0);`), making code cleaner, readable, and refactor-safe.
+* **Reusable Code:** A single generic class or method (such as `Box<T>`, `Pair<A, B>`, or `Repository<T>`) can operate on any reference type safely without duplicating code for every entity type.
+
+#### 2. What is a bounded type parameter, and why is <N extends Number> useful?
+* **Definition:** A bounded type parameter restricts the allowed type arguments to a specific class hierarchy or interface set using the `extends` keyword (e.g., `<T extends SuperClass & Interface>`).
+* **Why `<N extends Number>` is Useful:**
+  - **Method Availability:** Standard unbound type variables (`<T>`) only expose methods of `java.lang.Object` (`toString()`, `equals()`). By declaring `<N extends Number>`, the compiler guarantees that numeric methods such as `.doubleValue()`, `.intValue()`, and `.longValue()` exist on every instance.
+  - **Type Constraint:** Prevents nonsensical operations at compile time—passing incompatible types like `String[]`, `Boolean[]`, or `Account[]` to statistical methods like `average()` or `sum()` fails immediately at compilation.
+
+#### 3. What is type erasure?
+* **Definition:** Type erasure is the mechanism by which the Java compiler enforces generic type constraints strictly at compile time, and then **erases (removes)** all generic type information when emitting `.class` bytecode.
+* **How It Works:**
+  - Unbounded type parameters (`<T>`) are replaced with their upper bound `Object`.
+  - Bounded type parameters (`<N extends Number>`) are replaced with their bound `Number`.
+  - Synthetic casts are inserted at call sites where necessary to preserve type safety.
+  - Bridge methods are generated to preserve polymorphism in inheritance hierarchies.
+* **Consequences:** At runtime, `Repository<Account>` and `Repository<Customer>` are represented by the exact same raw `Repository.class`. Consequently, you cannot do `new T()`, `new T[size]`, or `instanceof T` directly.
+
+---
+
 ## 🛠️ Implemented Features & Supplementary Solutions
+
+### Practical 13 (Generics & Generic Repository Pattern)
+* **Part A1 — Generic Containers (`lab-13/containers`):**
+  - Implements generic `Box<T>` with get/set and emptiness check.
+  - Implements generic `Pair<A, B>` holding heterogeneous data types.
+  - Generic method `<T> T getFirst(T[] array)` safely extracting the first element from any array type without casts.
+* **Part A2 — Bounded Numeric Stats (`lab-13/bounded`):**
+  - Generic method `<N extends Number> double average(N[] values)` calculating averages across `Integer[]`, `Double[]`, `Long[]`, and `Float[]`.
+  - Explains compiler restriction rejecting non-Number types (`String[]`) at compile-time.
+* **Part A3 — Generic Array-Backed Stack (`lab-13/stack`):**
+  - Array-backed generic `ArrayStack<T>` with dynamic doubling and clean underflow handling via `EmptyStackException`.
+  - Reused across `String` and `Integer` types.
+* **Part B — Reusable Generic Repository Pattern (`service/Repository.java`):**
+  - `service.Repository<T>`:
+    - Replaces type-specific storage with a generic `HashMap<String, T>` repository.
+    - Inspects `@Id` annotations at runtime via recursive class hierarchy reflection (`extractId()`).
+    - Full CRUD support: `save(T entity)`, `findById(String id)`, `findAll()`, `delete(String id)`, and `count()`.
+    - Batch persistence method `@SafeVarargs public final ArrayList<T> saveAll(T... items)`.
+    - Bounded utility method `<N extends Number> double average(N[] values)`.
+    - **Supplementary Problem 1:** Reused directly for `Customer` (`Repository<Customer>`) without modifying any code.
+    - **Supplementary Problem 2:** Tracks item count via `count()` / `size()`.
+  - `MiniBank.java`:
+    - Integrated automated Practical 13 verification on startup, confirming `@Id` reflection extraction, generic repository lookups, Customer entity reuse, and bounded type parameter statistics.
 
 ### Practical 12 (Milestone 2 Collections Framework Upgrade)
 * **Part A1 — Word Frequency Analysis (`lab-12/wordfreq`):**
