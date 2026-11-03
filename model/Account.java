@@ -22,11 +22,10 @@ public abstract class Account implements Transactable, InterestBearing, Serializ
     private String ownerName;
 
     @Positive(message = "must be > 0")
-    private long balance; // whole rupees
+    private long balance;
 
     private boolean active;
 
-    // Transient field: Demonstrates state that is excluded from serialization
     private transient String sessionToken;
 
     private static long accountCounter = 0;
@@ -47,12 +46,10 @@ public abstract class Account implements Transactable, InterestBearing, Serializ
         this(ownerName, 0);
     }
 
-    // Abstract methods to be implemented by subclasses
     @Override
     public abstract double interestRate();
     public abstract boolean canWithdraw(long amount);
 
-    // Monthly interest calculation using interestRate() and balance
     public synchronized double monthlyInterest() {
         if (balance <= 0) {
             return 0.0;
@@ -60,7 +57,6 @@ public abstract class Account implements Transactable, InterestBearing, Serializ
         return (balance * (interestRate() / 100.0)) / 12.0;
     }
 
-    // Synchronized deposit method ensuring thread-safe atomic updates
     @Override
     public synchronized void deposit(long amount) throws InvalidAmountException {
         if (amount <= 0) {
@@ -69,20 +65,16 @@ public abstract class Account implements Transactable, InterestBearing, Serializ
         this.balance += amount;
     }
 
-    // Unsynchronized deposit for explicitly demonstrating the race condition (Practical 9 Part B)
     public void depositUnsafe(long amount) {
         if (amount > 0) {
-            // Read-Modify-Write non-atomic race window
             long temp = this.balance;
             try {
-                // Micro-pause to trigger thread preemption and race condition
                 Thread.sleep(0, 50);
             } catch (InterruptedException ignored) {}
             this.balance = temp + amount;
         }
     }
 
-    // Synchronized withdraw method
     @Override
     public synchronized void withdraw(long amount) throws InsufficientFundsException, InvalidAmountException, BankException {
         if (amount <= 0) {
@@ -99,17 +91,14 @@ public abstract class Account implements Transactable, InterestBearing, Serializ
         this.balance -= amount;
     }
 
-    // Protected helper for subclasses to update balance with synchronization
     protected synchronized void adjustBalance(long delta) {
         this.balance += delta;
     }
 
-    // Reset balance helper for test suites
     public synchronized void setBalance(long balance) {
         this.balance = balance;
     }
 
-    // Transfer method using try-catch-finally and re-throwing BankException
     public void transfer(Account to, long amount) throws BankException {
         if (to == null) {
             throw new BankException("Destination account cannot be null.");
@@ -124,20 +113,18 @@ public abstract class Account implements Transactable, InterestBearing, Serializ
             System.out.println("[TRANSFER SUCCESS] Transfer completed successfully.");
         } catch (BankException e) {
             if (debited) {
-                // Rollback if destination deposit failed
                 try {
                     this.deposit(amount);
                 } catch (Exception ignored) {}
             }
             System.out.println("[TRANSFER FAILED] " + e.getMessage());
-            throw e; // Re-throw BankException
+            throw e;
         } finally {
             System.out.println(String.format("[TRANSFER AUDIT] Final Balances -> Sender %s: Rs. %d | Receiver %s: Rs. %d",
                     this.getAccountNumber(), this.getBalance(), to.getAccountNumber(), to.getBalance()));
         }
     }
 
-    // Getters
     public String getAccountNumber() { return accountNumber; }
     public String getOwnerName() { return ownerName; }
     @Override

@@ -105,3 +105,4 @@ public class Repository<T> {
         return count == 0 ? 0.0 : sum / count;
     }
 }
+

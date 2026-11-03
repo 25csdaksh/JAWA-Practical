@@ -1,6 +1,6 @@
 # OOP Lab Practical Portfolio — Semester Work
 
-This repository contains the complete Java solutions for **Practical 1** through **Practical 13**, organized into practice programs and the modular, concurrent, thread-safe, and fault-tolerant **MiniBank** enterprise project.
+This repository contains the complete Java solutions for **Practical 1** through **Practical 14** (Milestone 3 Capstone Deliverable), organized into practice programs and the modular, layered, concurrent, thread-safe, and fault-tolerant **MiniBank** enterprise project.
 
 ---
 
@@ -47,6 +47,20 @@ A.lab practical/
 │   │   └── BoundedStatsDemo.java
 │   └── stack/               (Part A3: Generic ArrayStack<T> Container with Underflow Handling)
 │       └── GenericStackDemo.java
+├── lab-14/                  (Practical 14 — Layered App, Unit Testing & Runnable JAR)
+│   ├── app/
+│   │   ├── model/           (Part A1: Item Domain Entity)
+│   │   │   └── Item.java
+│   │   ├── service/         (Part A1: ItemService with ArrayList & Persistence)
+│   │   │   └── ItemService.java
+│   │   ├── test/            (Part A1: Lightweight @Test Annotation, Assertions & Suite)
+│   │   │   ├── Test.java
+│   │   │   ├── Assert.java
+│   │   │   └── ItemServiceTest.java
+│   │   ├── ui/              (Part A1: Console Menu Driver with --test CLI Flag)
+│   │   │   └── ItemApp.java
+│   │   └── MANIFEST.MF      (Manifest for Part A Runnable JAR)
+│   └── itemapp.jar          (Part A2: Packaged Runnable JAR Artifact)
 ├── exception/               (Custom Checked Exception Hierarchy)
 │   ├── BankException.java
 │   ├── InsufficientFundsException.java
@@ -57,13 +71,16 @@ A.lab practical/
 │   ├── annotation/
 │   │   ├── Id.java
 │   │   ├── Positive.java
-│   │   └── MaxLength.java
+│   │   ├── MaxLength.java
+│   │   └── Audit.java       (Practical 14 — @Audit Annotation for Reflective Method Logging)
 │   ├── Account.java         (Thread-safe balance, Comparable<Account>, Serializable)
 │   ├── SavingsAccount.java  (Thread-safe savings account)
 │   ├── CurrentAccount.java  (Thread-safe current account)
 │   ├── FixedDepositAccount.java (Thread-safe fixed deposit account)
-│   └── ...
+│   └── Customer.java        (Customer Profile Entity with PAN, Mobile, Email)
 ├── service/                 (Core Capabilities, Processors & Coordination)
+│   ├── BankService.java          (Practical 14 — Milestone 3 Capstone Service Layer Orchestrating Repo, Validator & Exceptions)
+│   ├── AuditLogger.java          (Practical 14 — Reflection-Based Method Audit Interceptor)
 │   ├── Repository.java           (Practical 13 — Generic Repository<T>, Reflection @Id, @SafeVarargs saveAll, Bounded average)
 │   ├── AccountStore.java         (Practical 12 — HashMap Storage, ArrayList Audit, Comparator Sort)
 │   ├── TransactionProcessor.java (Practical 12 — Thread-Safe ConcurrentHashMap Shared Accounts Engine)
@@ -72,6 +89,11 @@ A.lab practical/
 │   ├── AccountWorker.java   (Multi-threaded Runnable Worker)
 │   ├── BankingSession.java  (AutoCloseable Audit Session)
 │   └── ...
+├── test/                    (Practical 14 — Unit Testing Framework & Test Suite)
+│   ├── Test.java            (Custom @Test Annotation)
+│   ├── Assert.java          (Assertion Utilities: assertEquals, assertTrue, assertThrows)
+│   ├── MiniBankTest.java    (Unit Test Suite for MiniBank Milestone 3)
+│   └── MiniBankTestRunner.java (Reflection-Based Test Runner Executing All @Test Methods)
 ├── util/                    (Utilities, Reflection & NIO Helpers)
 │   ├── StatePersister.java  (Practical 11/12 — Object Serialization for Array & Collections)
 │   ├── TransactionLog.java  (Practical 11 — Append-Only NIO Channel Logging)
@@ -80,7 +102,7 @@ A.lab practical/
 │   ├── Validator.java
 │   ├── StatementFormatter.java
 │   └── CommandParser.java
-├── MiniBank.java            (Main Banking Shell with Generic Repository, Collections Milestone 2, Multi-threading & NIO)
+├── MiniBank.java            (Main Banking Shell with Layered BankService, Auto-Save/Load, Batch Concurrency & JUnit Test Mode)
 ├── MANIFEST.MF              (JAR Manifest specifying Main-Class: MiniBank)
 ├── minibank.jar             (Packaged Runnable JAR Artifact)
 ├── .gitignore
@@ -89,9 +111,9 @@ A.lab practical/
 
 ---
 
-## 🗺️ Practical-Wise Project & Lab Roadmap (Practical 1 to Practical 13)
+## 🗺️ Practical-Wise Project & Lab Roadmap (Practical 1 to Practical 14)
 
-This roadmap details the exact problem statements, practice programs (`lab-NN/`), and the step-by-step modular progression of the **MiniBank** project across all 13 practicals:
+This roadmap details the exact problem statements, practice programs (`lab-NN/`), and the step-by-step modular progression of the **MiniBank** project across all 14 practicals:
 
 | Practical No. | Core Java Theme / Focus | Part A: Practice Programs (`lab-NN/`) | Part B: MiniBank Project Work & Milestone Deliverables |
 |:---:|---|---|---|
@@ -108,6 +130,7 @@ This roadmap details the exact problem statements, practice programs (`lab-NN/`)
 | **Practical 11** | Java I/O Streams, Serialization & NIO | • `SaveLoadDemo` (Object serialization & transient fields)<br>• `LogAnalyzerDemo` (NIO file reading & metadata inspection)<br>• `TreeWalkerDemo` (Recursive walkFileTree audit) | **MiniBank Persistence & Financial Audit**:<br>• `StatePersister` saving/loading accounts via `ObjectOutputStream`/`ObjectInputStream`<br>• `transient String sessionToken` serialization exclusion<br>• Append-only `TransactionLog` and NIO `ReportGenerator` |
 | **Practical 12** | Collections Framework & Sorting (**Milestone 2**) | • `WordFrequencyDemo` (`HashMap` word counter & `Comparator`)<br>• `UniqueVisitorsDemo` (`HashSet` deduplication & `LinkedHashSet` first-seen)<br>• `LeaderboardDemo` (Map player scores & tie-breaking Comparator) | **Collections Storage Engine Upgrade**:<br>• `service.AccountStore` replacing arrays with `HashMap<String, Account>`<br>• `ArrayList<String>` transaction audit log<br>• `sortedByBalance()` using custom `Comparator`<br>• `Comparable<Account>` natural account number ordering<br>• Thread-safe `ConcurrentHashMap` in `TransactionProcessor`<br>• `TreeMap` sorted key order and balance threshold filter |
 | **Practical 13** | Generics, Type Erasure & Repository Pattern | • `GenericContainersDemo` (`Box<T>`, `Pair<A, B>`, `<T> getFirst()` generic method)<br>• `BoundedStatsDemo` (`<N extends Number> average()`)<br>• `GenericStackDemo` (Array-backed `ArrayStack<T>` with underflow protection) | **Reusable Generic Repository Pattern**:<br>• Generic `service.Repository<T>` holding `HashMap<String, T>`<br>• Reflection extraction of `@Id` annotated fields across class hierarchies<br>• `@SafeVarargs saveAll(T... items)` batch persistence<br>• Bounded generic average utility `Repository.average(<N extends Number>)`<br>• Reused seamlessly across both `Account` and `Customer` entities |
+| **Practical 14** | Layered Architecture, Unit Testing & Capstone Integration (**Milestone 3**) | • Layered Item App (`app.model.Item`, `app.service.ItemService`, `app.ui.ItemApp`)<br>• `@Test` unit test suite (`ItemServiceTest`) asserting count increases & invalid exceptions<br>• Packaged runnable `itemapp.jar` & state persistence reload test | **MiniBank Final Capstone Deliverable (Milestone 3)**:<br>• Layered `service.BankService` wiring `Repository<Account>`, `Validator`, and custom exceptions<br>• UI-to-Service wiring for all banking operations (`openAccount`, `deposit`, `withdraw`, `transfer`, `statement`, `listAccounts`)<br>• Auto-loads state from `data/accounts.dat` at start-up & auto-saves on exit<br>• Batch concurrency engine (`TransactionProcessor`) and audit report (`ReportGenerator`) as menu options<br>• `@Audit` method annotation & reflective execution logger (`AuditLogger`)<br>• Comprehensive `@Test` suite (`test.MiniBankTest`) covering deposits, overdraft limits, concurrent deposits, owner searches, and state persistence<br>• Standalone runnable `minibank.jar` with automated test CLI flag (`--test`) |
 
 ---
 
@@ -117,7 +140,7 @@ Make sure you have JDK 17 or higher installed on your system. Run all commands f
 
 ### 1. Compiling MiniBank & All Packages into `bin/`
 ```powershell
-javac -d bin exception/*.java model/annotation/*.java service/*.java model/*.java util/*.java MiniBank.java lab-13/containers/*.java lab-13/bounded/*.java lab-13/stack/*.java
+javac -d bin exception/*.java model/annotation/*.java service/*.java model/*.java util/*.java test/*.java MiniBank.java lab-13/containers/*.java lab-13/bounded/*.java lab-13/stack/*.java
 ```
 
 ### 2. Building the Runnable JAR (`minibank.jar`)
@@ -125,7 +148,32 @@ javac -d bin exception/*.java model/annotation/*.java service/*.java model/*.jav
 jar cfm minibank.jar MANIFEST.MF -C bin .
 ```
 
-### 3. Running Practical 13 Practice Programs
+### 3. Running MiniBank Unit Tests (Practical 14)
+* **Using the Reflection Test Runner:**
+  ```powershell
+  java -cp bin test.MiniBankTestRunner
+  ```
+* **Using the Runnable JAR directly:**
+  ```powershell
+  java -jar minibank.jar --test
+  ```
+
+### 4. Running Practical 14 Layered Item App & Tests
+* **Compiling and Packaging `lab-14/itemapp.jar`:**
+  ```powershell
+  javac -d lab-14/bin lab-14/app/model/*.java lab-14/app/service/*.java lab-14/app/test/*.java lab-14/app/ui/*.java
+  jar cfm lab-14/itemapp.jar lab-14/app/MANIFEST.MF -C lab-14/bin .
+  ```
+* **Running the Item App Unit Tests:**
+  ```powershell
+  java -jar lab-14/itemapp.jar --test
+  ```
+* **Running the Item App Interactively:**
+  ```powershell
+  java -jar lab-14/itemapp.jar
+  ```
+
+### 5. Running Practical 13 Practice Programs
 * **Generic Containers (Box, Pair & getFirst):**
   ```powershell
   java -cp bin containers.GenericContainersDemo
@@ -136,6 +184,13 @@ jar cfm minibank.jar MANIFEST.MF -C bin .
   ```
 * **Generic Array-Backed Stack:**
   ```powershell
+  java -cp bin stack.GenericStackDemo
+  ```
+
+### 6. Running the MiniBank Interactive Shell
+```powershell
+java -jar minibank.jar
+```
   java -cp bin stack.GenericStackDemo
   ```
 
@@ -386,7 +441,84 @@ java -jar minibank.jar
 
 ---
 
+### 💡 Practical 14 Questions (Layered Architecture, Unit Testing & Milestone 3 Capstone)
+
+#### 1. What is a layered architecture (model, service, user interface), and why is it useful?
+* **Layers Defined:**
+  - **Model Layer (`model` / `model.annotation`):** Encapsulates core business entities, domain data, internal state, and data invariants (e.g., `Account`, `Customer`, `Item`). It has no knowledge of UI or services.
+  - **Service Layer (`service` / `service.BankService`):** Contains core business logic, application workflows, transaction boundaries, and coordinates between repositories, validation, and processing engines.
+  - **Presentation / User Interface Layer (`MiniBank`, `ItemApp`):** Handles user input parsing, menu navigation, formatted screen output, and delegates commands directly to the underlying service layer.
+* **Why Layered Architecture is Useful:**
+  - **Separation of Concerns:** Each layer possesses a distinct, single responsibility, preventing spaghetti code where business logic is mixed with console I/O.
+  - **Independent Testability:** Business logic inside services and domain validation rules inside models can be thoroughly verified through automated unit tests (`@Test`) without launching or interacting with the UI.
+  - **Maintainability & Flexibility:** The presentation layer can be completely swapped (e.g., from a console CLI to a Spring REST API, JavaFX desktop app, or web interface) without altering a single line of business logic in `BankService`.
+  - **Reusability & Modularity:** Repositories, models, and utility processors can be reused across different services and workflows seamlessly.
+
+#### 2. How do you assert in JUnit that a method throws an expected exception?
+* In modern testing frameworks (such as JUnit 5 or our custom test harness `Assert.assertThrows`), you use:
+  ```java
+  assertThrows(Class<T> expectedType, Executable executable);
+  ```
+* **Example Usage:**
+  ```java
+  assertThrows(InsufficientFundsException.class, () -> {
+      bankService.withdraw("AC0001", 100000.0);
+  });
+  ```
+* **How It Works:**
+  - The test framework executes the provided lambda expression or functional interface inside an internal `try-catch` block.
+  - If the code executes without throwing any exception, the assertion immediately **fails** reporting that an exception was expected.
+  - If the code throws an exception that is an instance of `expectedType`, the assertion passes and returns the caught exception object for optional downstream inspection (such as verifying error messages).
+  - If the code throws an unexpected exception type, the assertion fails and re-throws the unexpected error.
+
+#### 3. What does packaging the application as a runnable JAR provide?
+* **Single-File Distribution & Portability:** Packages all compiled `.class` files, subpackages, resources, and manifest metadata into a single, standardized, compressed ZIP-format archive (`.jar`), making delivery and deployment frictionless across any operating system with a JVM.
+* **Encapsulation & Code Integrity:** Shields individual bytecode class files from accidental deletion, tampering, or folder misplacement. It also supports cryptographic code signing to verify artifact authenticity and author identity.
+* **Zero-Configuration Execution:** By specifying `Main-Class: MiniBank` in `META-INF/MANIFEST.MF`, end users can run the entire multi-package application with a single command (`java -jar minibank.jar`) without manually configuring complex classpath strings (`-cp`) or locating individual class roots.
+* **Standard Industrial Packaging:** Mimics real-world software delivery where artifacts are built, verified via continuous testing, and released as executable bundles.
+
+---
+
 ## 🛠️ Implemented Features & Supplementary Solutions
+
+### Practical 14 (Milestone 3 Final Capstone Deliverable)
+* **Part A1 — Layered Item Application (`lab-14/app`):**
+  - Layered architecture with strict separation:
+    - `app.model.Item`: Domain entity with `id`, `name`, `price`, getters, validation, and formatted string representation.
+    - `app.service.ItemService`: Business logic managing items in an `ArrayList<Item>`, enforcing positive prices, unique IDs, search, and persistence.
+    - `app.ui.ItemApp`: Interactive console menu supporting interactive execution and headless automated verification (`--test`).
+* **Part A2 — Unit Testing Suite & Runnable JAR (`lab-14/itemapp.jar`):**
+  - Custom JUnit-style testing harness (`app.test.Test` and `app.test.Assert`):
+    - `Assert.assertEquals`, `Assert.assertTrue`, and `Assert.assertThrows`.
+  - `ItemServiceTest` executing 4 comprehensive automated tests:
+    - `testAddItemIncreasesCount()`: Asserts item collection count increments on addition.
+    - `testInvalidPriceThrowsException()`: Asserts non-positive prices throw `IllegalArgumentException`.
+    - `testDuplicateIdThrowsException()`: Asserts duplicate IDs throw `IllegalStateException`.
+    - `testSaveAndReloadState()`: Saves items to disk, reloads from disk, and asserts all records remain identical.
+  - Standalone runnable JAR `lab-14/itemapp.jar` built with manifest specifying `Main-Class: app.ui.ItemApp`.
+* **Part B — MiniBank Milestone 3 Capstone Deliverable:**
+  - `service.BankService`:
+    - Full enterprise service layer integrating `Repository<Account>`, `AccountStore`, `Validator`, `TransferService`, and `ReportGenerator`.
+    - Implements all core banking operations: `openAccount`, `deposit`, `withdraw`, `transfer`, `statement`, `listAccounts`, `sortedByBalance`, and `searchByOwnerName`.
+    - Decorated with `@Audit` annotations for runtime tracking.
+  - **Reflective Audit Logger (`service.AuditLogger` & `model.annotation.Audit`):**
+    - Inspects methods for `@Audit(action = "...")` and logs method invocation timestamps, action descriptions, and arguments using Java Reflection.
+  - **UI-to-Service Integration & Auto-Persistence (`MiniBank.java`):**
+    - Wires all 23 menu options to `BankService`.
+    - Auto-loads saved accounts from `data/accounts.dat` at start-up via `StatePersister`.
+    - Auto-saves all accounts to `data/accounts.dat` upon selecting exit (Option 23).
+  - **Concurrency & Financial Audit Menu Options:**
+    - Integrated multi-threaded batch transaction processing (`service.TransactionProcessor` with 4 pool workers) and end-of-day NIO directory reconciliation (`util.ReportGenerator`).
+  - **Unit Testing Suite (`test.MiniBankTest` & `test.MiniBankTestRunner`):**
+    - Automated test runner verifying 5 comprehensive JUnit tests:
+      1. `testDepositIncreasesBalance()`: Asserts deposits increment account balance.
+      2. `testWithdrawalOverLimitThrowsException()`: Asserts overdrafts throw `InsufficientFundsException`.
+      3. `testConcurrentDepositsKeepBalanceCorrect()`: Stresses 20 concurrent deposit threads against a single account, proving balance consistency without race conditions.
+      4. `testStatePersistence()`: Serializes accounts to disk, deserializes them, and asserts data integrity.
+      5. `testSearchByOwnerName()`: Validates case-insensitive owner name search filtering.
+    - Test runner callable via `java -cp bin test.MiniBankTestRunner` or `java -jar minibank.jar --test`.
+  - **Runnable Executable JAR (`minibank.jar`):**
+    - Packaged standalone executable containing all compiled modules, manifest, and runtime entry point.
 
 ### Practical 13 (Generics & Generic Repository Pattern)
 * **Part A1 — Generic Containers (`lab-13/containers`):**
